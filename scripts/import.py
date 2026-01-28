@@ -1,343 +1,247 @@
 import bpy
 import xml.etree.ElementTree as ET
-import ast
-from mathutils import Vector, Euler, Color, Matrix, Quaternion
+from mathutils import Vector
 
-# Global list to store pointer links that need resolving after all objects exist
 DEFERRED_LINKS = []
 
 def clean_scene():
-    """Cleans the current blender scene."""
-    if bpy.context.active_object and bpy.context.active_object.mode != 'OBJECT':
+    if bpy.context.view_layer.objects.active and bpy.context.view_layer.objects.active.mode != 'OBJECT':
         bpy.ops.object.mode_set(mode='OBJECT')
-
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.object.delete()
 
-    # Remove data blocks
-    for collection in [bpy.data.meshes, bpy.data.materials, bpy.data.armatures,
-                       bpy.data.actions, bpy.data.cameras, bpy.data.lights,
-                       bpy.data.images]:
-        for block in collection:
-            collection.remove(block)
-
-    # Clean collections
+    for col in [bpy.data.meshes, bpy.data.materials, bpy.data.armatures,
+                bpy.data.actions, bpy.data.cameras, bpy.data.lights]:
+        for block in col: col.remove(block)
     for block in bpy.data.collections:
-        if block.name != "Collection":
-            bpy.data.collections.remove(block)
+        if block.name != "Collection": bpy.data.collections.remove(block)
 
     global DEFERRED_LINKS
     DEFERRED_LINKS = []
 
 def parse_typed_value(value_str, type_str):
-    """
-    Converts string to Blender type based on EXPLICIT xml type.
-    """
-    if value_str is None or value_str == "None":
-        return None
-
+    if value_str is None or value_str == "None": return None
     try:
-        if type_str == 'STRING':
-            return value_str
-        elif type_str == 'BOOLEAN':
-            return value_str == "True"
-        elif type_str == 'INT':
-            return int(value_str)
-        elif type_str == 'FLOAT':
-            return float(value_str)
-        elif type_str in {'FLOAT_ARRAY', 'INT_ARRAY', 'BOOLEAN_ARRAY'}:
-            # Expecting "1.0,2.0,3.0"
+        if type_str == 'STRING': return value_str
+        elif type_str == 'BOOLEAN': return value_str == "True"
+        elif type_str == 'INT': return int(value_str)
+        elif type_str == 'FLOAT': return float(value_str)
+        elif 'ARRAY' in type_str:
             if not value_str: return []
-            # Check if it looks like a list
-            str_vals = value_str.split(',')
-            # Heuristic: Determine if float or int based on type_str
-            if 'FLOAT' in type_str:
-                return [float(x) for x in str_vals]
-            elif 'INT' in type_str:
-                return [int(x) for x in str_vals]
-            return str_vals
-        elif type_str == 'POINTER':
-            # Return the name string, to be resolved later
-            return value_str
-        elif type_str == 'ENUM':
-            return value_str
-    except Exception:
-        return None
+            parts = value_str.split(',')
+            return [float(x) for x in parts] if 'FLOAT' in type_str else [int(x) for x in parts]
+        elif type_str == 'POINTER': return value_str
+        elif type_str == 'ENUM': return value_str
+    except: return None
     return value_str
 
 def apply_xml_properties(blender_obj, xml_node):
-    """
-    Iterates <Properties> child node and applies values.
-    """
-    props_container = xml_node.find("Properties")
-    if props_container is None:
-        return
+    props = xml_node.find("Properties")
+    if not props: return
 
-    for prop in props_container.findall("Prop"):
-        prop_name = prop.get("name")
-        prop_type = prop.get("type")
-        prop_val_str = prop.get("value")
+    for prop in props.findall("Prop"):
+        name = prop.get("name")
+        typ = prop.get("type")
+        val = parse_typed_value(prop.get("value"), typ)
+        if name in ['name', 'type', 'is_readonly', 'data']: continue
 
-        # Skip read-only or problematic properties usually handled by structure
-        if prop_name in ['name', 'type', 'is_readonly']:
-            continue
-
-        val = parse_typed_value(prop_val_str, prop_type)
-
-        if prop_type == 'POINTER':
-            # Queue this for later. We cannot link an object that might not exist yet.
+        if typ == 'POINTER':
             if val and val != "None":
-                DEFERRED_LINKS.append((blender_obj, prop_name, val))
+                DEFERRED_LINKS.append((blender_obj, name, val))
         else:
             try:
-                # Handle special Mathutils types conversion from Arrays
-                # Blender API expects Sequences for properties like location,
-                # but explicit types for specific props like Matrix might need help.
-                if hasattr(blender_obj, prop_name):
-                    setattr(blender_obj, prop_name, val)
-            except Exception:
-                # Some properties are read-only at runtime or depend on context
-                pass
+                if hasattr(blender_obj, name): setattr(blender_obj, name, val)
+            except: pass
 
-def build_mesh_geometry(mesh_data, mesh_xml_node):
-    """
-    Reconstructs vertices and faces from XML data.
-    """
-    verts = []
-    faces = []
+def import_libraries(root):
+    libs = root.find("Libraries")
+    if not libs: return
 
-    # 1. Parse Vertices
-    v_node = mesh_xml_node.find("Vertices")
-    if v_node:
-        for v in v_node.findall("V"):
-            co_str = v.get("co")
-            if co_str:
-                verts.append([float(x) for x in co_str.split(',')])
+    # Meshes
+    if libs.find("Meshes"):
+        for m_node in libs.find("Meshes").findall("Mesh"):
+            mesh = bpy.data.meshes.new(m_node.get("name"))
+            geo = m_node.find("Geometry")
+            if geo:
+                verts = []
+                for v in geo.find("Vertices").findall("V"):
+                    verts.append([float(x) for x in v.get("co").split(',')])
+                faces = []
+                for p in geo.find("Polygons").findall("P"):
+                    faces.append([int(x) for x in p.get("i").split(',')])
+                mesh.from_pydata(verts, [], faces)
+                mesh.update()
+            apply_xml_properties(mesh, m_node)
 
-    # 2. Parse Polygons (Faces)
-    p_node = mesh_xml_node.find("Polygons")
-    if p_node:
-        for p in p_node.findall("P"):
-            idx_str = p.get("i")
-            if idx_str:
-                faces.append([int(x) for x in idx_str.split(',')])
+    # Materials
+    if libs.find("Materials"):
+        for mat_node in libs.find("Materials").findall("Material"):
+            mat = bpy.data.materials.new(mat_node.get("name"))
+            apply_xml_properties(mat, mat_node)
 
-    # 3. Build Mesh
-    mesh_data.from_pydata(verts, [], faces)
-    mesh_data.update()
+    # Lights
+    if libs.find("Lights"):
+        for l_node in libs.find("Lights").findall("Light"):
+            light = bpy.data.lights.new(l_node.get("name"), type='POINT')
+            apply_xml_properties(light, l_node)
 
-def import_actions(root):
-    """Reconstructs Actions based on Typed Properties."""
-    for action_node in root.findall(".//Action"):
-        name = action_node.get("name", "ImportedAction")
-        action = bpy.data.actions.new(name=name)
+    # Cameras
+    if libs.find("Cameras"):
+        for c_node in libs.find("Cameras").findall("Camera"):
+            cam = bpy.data.cameras.new(c_node.get("name"))
+            apply_xml_properties(cam, c_node)
 
-        apply_xml_properties(action, action_node)
+    # Armatures
+    if libs.find("Armatures"):
+        for arm_node in libs.find("Armatures").findall("ArmatureData"):
+            arm = bpy.data.armatures.new(arm_node.get("name"))
+            apply_xml_properties(arm, arm_node)
 
-        for fcurve_node in action_node.findall("FCurve"):
-            # FCurve props are likely inside <Properties> now too,
-            # but data_path and index are usually structural attributes in export
-            # If your export put them in properties, retrieve them via lookups,
-            # but usually key identifiers stay as attributes for finding the path.
-            # Assuming export kept basic attributes for identifiers:
+            temp_obj = bpy.data.objects.new("TempArmature", arm)
+            bpy.context.collection.objects.link(temp_obj)
+            bpy.context.view_layer.objects.active = temp_obj
+            bpy.ops.object.mode_set(mode='EDIT')
 
-            # Helper to check attributes or property children
-            def get_val(node, key):
-                # Try attribute first
-                if node.get(key): return node.get(key)
-                # Try property child
-                prop = node.find(f"Properties/Prop[@name='{key}']")
-                if prop is not None: return prop.get("value")
-                return None
+            bones_node = arm_node.find("Bones")
+            if bones_node:
+                for b_node in bones_node.findall("Bone"):
+                    eb = arm.edit_bones.new(b_node.get("name"))
+                    if b_node.get("head"): eb.head = Vector([float(x) for x in b_node.get("head").split(',')])
+                    if b_node.get("tail"): eb.tail = Vector([float(x) for x in b_node.get("tail").split(',')])
+                    if b_node.get("roll"): eb.roll = float(b_node.get("roll"))
 
-            data_path = get_val(fcurve_node, "data_path")
-            array_index = int(get_val(fcurve_node, "array_index") or 0)
+                for b_node in bones_node.findall("Bone"):
+                    p_name = b_node.get("parent_name")
+                    if p_name and p_name in arm.edit_bones:
+                        arm.edit_bones[b_node.get("name")].parent = arm.edit_bones[p_name]
 
-            if not data_path: continue
+            bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.data.objects.remove(temp_obj)
 
-            fcurve = action.fcurves.new(data_path=data_path, index=array_index)
+    # Actions
+    if libs.find("Actions"):
+        for act_node in libs.find("Actions").findall("Action"):
+            action = bpy.data.actions.new(act_node.get("name"))
+            apply_xml_properties(action, act_node)
+            for fc_node in act_node.findall("FCurve"):
+                dp = fc_node.get("data_path")
+                idx = int(fc_node.get("array_index"))
+                fcurve = action.fcurves.new(data_path=dp, index=idx)
+                for kp in fc_node.findall("KP"):
+                    co = [float(x) for x in kp.get("co").split(',')]
+                    fcurve.keyframe_points.insert(frame=co[0], value=co[1])
 
-            # Keyframes
-            for point_node in fcurve_node.findall("KeyFramePoints"):
-                # "co" might be in properties now
-                co_val = None
+def import_nla(obj, obj_node):
+    nla_node = obj_node.find("NLA")
+    if not nla_node: return
 
-                # Check properties block for 'co'
-                props = point_node.find("Properties")
+    if not obj.animation_data:
+        obj.animation_data_create()
+
+    for t_node in nla_node.findall("Track"):
+        track = obj.animation_data.nla_tracks.new()
+        apply_xml_properties(track, t_node)
+
+        for s_node in t_node.findall("Strip"):
+            act_name = s_node.get("action_name")
+            action = bpy.data.actions.get(act_name)
+            if action:
+                # We need start frame from properties to create strip
+                start_frame = 1
+                props = s_node.find("Properties")
                 if props:
-                    co_prop = props.find("Prop[@name='co']")
-                    if co_prop:
-                        co_val = parse_typed_value(co_prop.get("value"), "FLOAT_ARRAY")
+                    val = props.find("Prop[@name='frame_start']")
+                    if val: start_frame = float(val.get("value"))
 
-                if not co_val:
-                     # Fallback to attribute if export kept it mixed
-                     co_str = point_node.get("co")
-                     if co_str: co_val = [float(x) for x in co_str.split(',')]
-
-                if co_val:
-                    kf = fcurve.keyframe_points.insert(frame=co_val[0], value=co_val[1])
-                    apply_xml_properties(kf, point_node)
+                try:
+                    strip = track.strips.new(s_node.get("name"), int(start_frame), action)
+                    apply_xml_properties(strip, s_node)
+                except:
+                    print(f"Failed to create strip for {act_name}")
 
 def import_object(parent_node, collection):
-    """Recursive object importer handling <Data> and <MeshData>."""
-
     for obj_node in parent_node.findall("Object"):
-        name = obj_node.get("name", "NewObject")
-        obj_type = obj_node.get("type", "EMPTY")
-
-        # --- 1. Create Data Block ---
+        name = obj_node.get("name", "Obj")
+        data_name = obj_node.get("data_name")
         data_block = None
-        data_node = obj_node.find("Data")
 
-        if obj_type == 'MESH':
-            mesh_name = name + "_Mesh"
-            if data_node and data_node.get("name"): mesh_name = data_node.get("name")
-            data_block = bpy.data.meshes.new(mesh_name)
+        if data_name:
+            data_block = bpy.data.meshes.get(data_name) or \
+                         bpy.data.lights.get(data_name) or \
+                         bpy.data.cameras.get(data_name) or \
+                         bpy.data.armatures.get(data_name)
 
-            # Reconstruct Geometry
-            mesh_data_xml = data_node.find("MeshData") if data_node else None
-            if mesh_data_xml:
-                build_mesh_geometry(data_block, mesh_data_xml)
-
-        elif obj_type == 'CAMERA':
-            cam_name = name + "_Cam"
-            data_block = bpy.data.cameras.new(cam_name)
-        elif obj_type == 'LIGHT':
-            light_name = name + "_Light"
-            data_block = bpy.data.lights.new(light_name, type='POINT')
-        elif obj_type == 'ARMATURE':
-            arm_name = name + "_Arm"
-            data_block = bpy.data.armatures.new(arm_name)
-
-        # --- 2. Create Object ---
         obj = bpy.data.objects.new(name, data_block)
         collection.objects.link(obj)
-
-        # --- 3. Apply Properties ---
-        # Apply Object properties (Location, Rotation, etc.)
         apply_xml_properties(obj, obj_node)
 
-        # Apply Data properties (Light energy, Camera lens, etc.)
-        if data_block and data_node:
-            apply_xml_properties(data_block, data_node)
-
-        # --- 4. Special Handling (Armatures, Vertex Groups) ---
+        # NLA Import
+        import_nla(obj, obj_node)
 
         # Vertex Groups
-        vg_container = obj_node.find("VertexGroups")
-        if vg_container:
-            for grp in vg_container.findall("Group"):
-                vg = obj.vertex_groups.new(name=grp.get("name"))
-                # Vertex weights
-                for v in grp.findall("Vertex"):
-                    try:
-                        vid = int(v.get("id"))
-                        weight = float(v.get("weight"))
-                        # Verify vertex exists (important now that we have geometry)
-                        if obj.type == 'MESH' and vid < len(obj.data.vertices):
-                            vg.add([vid], weight, 'REPLACE')
-                    except: pass
+        vg_node = obj_node.find("VertexGroups")
+        if vg_node:
+            for g_node in vg_node.findall("Group"):
+                vg = obj.vertex_groups.new(name=g_node.get("name"))
+                if obj.type == 'MESH':
+                    for vw in g_node.findall("VW"):
+                        try: vg.add([int(vw.get("id"))], float(vw.get("w")), 'REPLACE')
+                        except: pass
 
-        # Armature Bones
-        arm_node = obj_node.find("Armature")
-        if arm_node and obj.type == 'ARMATURE':
-            import_armature_bones(obj, arm_node)
-
-        # Recurse Children
         import_object(obj_node, collection)
-
-def import_armature_bones(obj, armature_node):
-    bpy.context.view_layer.objects.active = obj
-    bpy.ops.object.mode_set(mode='EDIT')
-
-    def create_bones_recursive(xml_parent, bone_parent):
-        for bone_xml in xml_parent.findall("Bone"):
-            name = bone_xml.get("name")
-            eb = obj.data.edit_bones.new(name)
-
-            # Apply properties (Head/Tail/Roll)
-            # These are likely in <Properties> now
-            apply_xml_properties(eb, bone_xml)
-
-            if bone_parent:
-                eb.parent = bone_parent
-
-            create_bones_recursive(bone_xml, eb)
-
-    create_bones_recursive(armature_node, None)
-    bpy.ops.object.mode_set(mode='OBJECT')
 
 def import_collections(parent_xml, parent_col):
     for col_node in parent_xml.findall("Collection"):
         name = col_node.get("name", "Col")
         new_col = bpy.data.collections.new(name)
         parent_col.children.link(new_col)
-
-        # Recurse contents
         import_object(col_node, new_col)
         import_collections(col_node, new_col)
 
 def resolve_deferred_links():
-    """
-    Pass 2: Connect pointers (Parenting, Modifiers, Object Constraints)
-    now that all objects exist.
-    """
-    print(f"Resolving {len(DEFERRED_LINKS)} pointers...")
-
+    print(f"Resolving {len(DEFERRED_LINKS)} links...")
     for obj, prop_name, target_name in DEFERRED_LINKS:
-        # Find target in common data blocks
         target = bpy.data.objects.get(target_name) or \
+                 bpy.data.meshes.get(target_name) or \
                  bpy.data.materials.get(target_name) or \
                  bpy.data.actions.get(target_name) or \
                  bpy.data.armatures.get(target_name) or \
                  bpy.data.cameras.get(target_name) or \
-                 bpy.data.lights.get(target_name) or \
-                 bpy.data.images.get(target_name)
+                 bpy.data.lights.get(target_name)
 
         if target:
-            try:
-                setattr(obj, prop_name, target)
-            except Exception as e:
-                print(f"Failed to link {prop_name} on {obj.name} to {target_name}: {e}")
-        else:
-            print(f"Warning: Link target '{target_name}' not found for {obj.name}.{prop_name}")
+            try: setattr(obj, prop_name, target)
+            except: pass
 
 def importFromXML(infile):
     tree = ET.parse(infile)
     root = tree.getroot()
-
     clean_scene()
 
-    # 1. Global Definitions
-    import_actions(root)
+    import_libraries(root)
 
-    # 2. Scene Graph
-    scenes_node = root.find("Scenes")
-    if scenes_node is not None:
-        for scene_node in scenes_node.findall("Scene"):
-            scene = bpy.data.scenes.new(name=scene_node.get("name", "Scene"))
+    scenes = root.find("Scenes")
+    if scenes:
+        for s_node in scenes.findall("Scene"):
+            scene = bpy.data.scenes.new(s_node.get("name"))
             bpy.context.window.scene = scene
 
-            master_col = scene.collection
+            # UNWRAPPED Import:
+            # 1. Import Sub-collections
+            import_collections(s_node, scene.collection)
+            # 2. Import Root Objects directly into scene.collection
+            import_object(s_node, scene.collection)
 
-            import_collections(scene_node, master_col)
-            import_object(scene_node, master_col)
+            apply_xml_properties(scene, s_node)
 
-            apply_xml_properties(scene, scene_node)
-
-    # 3. Resolve Pointers
     resolve_deferred_links()
+    print("Import Complete.")
 
-    print(f"Import Complete: {infile}")
-
-# --- Execution ---
 import_file_path = "sandrunner_bike.blxml"
 import_path_abs = bpy.path.abspath("//" + import_file_path)
 
 try:
     importFromXML(import_path_abs)
-except FileNotFoundError:
-    print(f"File not found: {import_file_path}")
 except Exception as e:
     import traceback
     traceback.print_exc()
