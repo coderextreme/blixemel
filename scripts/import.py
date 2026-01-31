@@ -18,14 +18,18 @@ def clean_scene():
 
     for col in [bpy.data.meshes, bpy.data.materials, bpy.data.armatures,
                 bpy.data.actions, bpy.data.cameras, bpy.data.lights, bpy.data.images]:
-        for block in col: col.remove(block)
+        for block in col:
+            col.remove(block)
 
     for block in bpy.data.collections:
-        if block.name != "Collection": bpy.data.collections.remove(block)
+        if block.name != "Collection":
+            bpy.data.collections.remove(block)
     if "Collection" in bpy.data.collections:
         default_col = bpy.data.collections["Collection"]
-        for obj in default_col.objects: default_col.objects.unlink(obj)
-    while len(bpy.data.scenes) > 1: bpy.data.scenes.remove(bpy.data.scenes[-1])
+        for obj in list(default_col.objects):
+            default_col.objects.unlink(obj)
+    while len(bpy.data.scenes) > 1:
+        bpy.data.scenes.remove(bpy.data.scenes[-1])
 
     global HIERARCHY_MAP, DEFERRED_POSES, DEFERRED_ACTIONS, DEFERRED_LINKS
     HIERARCHY_MAP = {}
@@ -34,58 +38,85 @@ def clean_scene():
     DEFERRED_LINKS = []
 
 def parse_typed_value(value_str, type_str, struct_type):
-    if value_str is None or value_str == "None": return None
+    if value_str is None or value_str == "None":
+        return None
     try:
-        if struct_type == "VECTOR": return Vector([float(x) for x in value_str.split(',')])
-        elif struct_type == "EULER": return Euler([float(x) for x in value_str.split(',')], 'XYZ')
-        elif struct_type == "QUATERNION": return Quaternion([float(x) for x in value_str.split(',')])
+        if struct_type == "VECTOR":
+            return Vector([float(x) for x in value_str.split(',')])
+        elif struct_type == "EULER":
+            return Euler([float(x) for x in value_str.split(',')], 'XYZ')
+        elif struct_type == "QUATERNION":
+            return Quaternion([float(x) for x in value_str.split(',')])
         elif struct_type == "MATRIX_4X4":
             parts = [float(x) for x in value_str.split(',')]
             return Matrix([parts[i:i+4] for i in range(0, 16, 4)])
-        if type_str == 'STRING': return value_str
-        elif type_str == 'BOOLEAN': return value_str == "True"
-        elif type_str == 'INT': return int(value_str)
-        elif type_str == 'FLOAT': return float(value_str)
+        if type_str == 'STRING':
+            return value_str
+        elif type_str == 'BOOLEAN':
+            return value_str == "True"
+        elif type_str == 'INT':
+            return int(value_str)
+        elif type_str == 'FLOAT':
+            return float(value_str)
         elif 'ARRAY' in type_str:
-            if not value_str: return []
+            if not value_str:
+                return []
             parts = value_str.split(',')
             return [float(x) for x in parts] if 'FLOAT' in type_str else [int(x) for x in parts]
-    except: return None
+    except:
+        return None
     return value_str
 
 def apply_xml_properties(blender_obj, xml_node):
     props = xml_node.find("Properties")
-    if not props: return
+    if not props:
+        return
 
     if blender_obj not in HIERARCHY_MAP:
-        HIERARCHY_MAP[blender_obj] = {'parent': None, 'type': None, 'bone': None, 'inv': None, 'world_matrix': None, 'transforms': []}
+        HIERARCHY_MAP[blender_obj] = {
+            'parent': None,
+            'type': None,
+            'bone': None,
+            'inv': None,
+            'world_matrix': None,
+            'transforms': []
+        }
 
     for prop in props.findall("Prop"):
         name = prop.get("name")
         val = parse_typed_value(prop.get("value"), prop.get("type"), prop.get("structure_type", ""))
 
-        if name in ['name', 'type', 'is_readonly', 'data', 'rotation_mode', 'matrix_basis', 'matrix_local', 'matrix_custom']: continue
+        if name in ['name', 'type', 'is_readonly', 'data', 'rotation_mode',
+                    'matrix_basis', 'matrix_local', 'matrix_custom']:
+            continue
 
-        if name == 'parent': HIERARCHY_MAP[blender_obj]['parent'] = val
-        elif name == 'parent_type': HIERARCHY_MAP[blender_obj]['type'] = val
-        elif name == 'parent_bone': HIERARCHY_MAP[blender_obj]['bone'] = val
-        elif name == 'matrix_parent_inverse': HIERARCHY_MAP[blender_obj]['inv'] = val
-        elif name == 'matrix_world': HIERARCHY_MAP[blender_obj]['world_matrix'] = val
-        elif name == 'rotation_mode': HIERARCHY_MAP[blender_obj]['rotation_mode'] = val
+        if name == 'parent':
+            HIERARCHY_MAP[blender_obj]['parent'] = val
+        elif name == 'parent_type':
+            HIERARCHY_MAP[blender_obj]['type'] = val
+        elif name == 'parent_bone':
+            HIERARCHY_MAP[blender_obj]['bone'] = val
+        elif name == 'matrix_parent_inverse':
+            HIERARCHY_MAP[blender_obj]['inv'] = val
+        elif name == 'matrix_world':
+            HIERARCHY_MAP[blender_obj]['world_matrix'] = val
+        elif name == 'rotation_mode':
+            HIERARCHY_MAP[blender_obj]['rotation_mode'] = val
         elif name in ['location', 'rotation_euler', 'rotation_quaternion', 'scale']:
             HIERARCHY_MAP[blender_obj]['transforms'].append((name, val))
         elif prop.get("type") == 'POINTER':
             DEFERRED_LINKS.append((blender_obj, name, val))
         else:
-            try: setattr(blender_obj, name, val)
-            except: pass
+            try:
+                setattr(blender_obj, name, val)
+            except:
+                pass
 
 def rebuild_full_node_graph(mat, nodegraph_node):
     tree = mat.node_tree
     tree.nodes.clear()
     node_map = {}
 
-    # Create nodes
     for n_el in nodegraph_node.findall("Node"):
         bl_idname = n_el.get("type")
         name = n_el.get("name", bl_idname)
@@ -94,7 +125,6 @@ def rebuild_full_node_graph(mat, nodegraph_node):
         try:
             node = tree.nodes.new(bl_idname)
         except:
-            # If unknown node type, skip
             print(f"  [Mat: {mat.name}] Unknown node type: {bl_idname}")
             continue
 
@@ -105,7 +135,6 @@ def rebuild_full_node_graph(mat, nodegraph_node):
         except:
             pass
 
-        # Restore image on TEX_IMAGE nodes
         if node.type == 'TEX_IMAGE':
             img_name = n_el.get("image")
             if img_name and img_name in bpy.data.images:
@@ -117,7 +146,6 @@ def rebuild_full_node_graph(mat, nodegraph_node):
 
         node_map[name] = node
 
-    # Create links
     for l_el in nodegraph_node.findall("Link"):
         fn = node_map.get(l_el.get("from_node"))
         tn = node_map.get(l_el.get("to_node"))
@@ -134,12 +162,10 @@ def reconstruct_material_nodes(mat, mat_node):
     nodegraph = mat_node.find("NodeGraph")
     tree = mat.node_tree
 
-    # --- HYBRID: if full NodeGraph exists, use it and skip simplified rebuild ---
     if nodegraph is not None:
         rebuild_full_node_graph(mat, nodegraph)
         return
 
-    # --- otherwise, keep your existing Principled-only reconstruction ---
     tree.nodes.clear()
 
     bsdf = tree.nodes.new('ShaderNodeBsdfPrincipled')
@@ -219,9 +245,9 @@ def reconstruct_material_nodes(mat, mat_node):
 
 def import_libraries(root, xml_dir):
     libs = root.find("Libraries")
-    if not libs: return
+    if not libs:
+        return
 
-    # --- TEXTURE LOADING WITH MANUAL FALLBACK ---
     tex_dir_abs = os.path.join(xml_dir, "textures")
     if os.path.exists(tex_dir_abs):
         print(f"Scanning textures in: {tex_dir_abs}")
@@ -237,14 +263,13 @@ def import_libraries(root, xml_dir):
             if rel_path:
                 filename = os.path.basename(rel_path)
 
-                # 1. Try manual absolute path
                 manual_path = os.path.join(tex_dir_abs, filename)
                 if os.path.exists(manual_path):
                     try:
                         img = bpy.data.images.load(manual_path)
-                    except: pass
+                    except:
+                        pass
 
-                # 2. Try smart search
                 if not img:
                     img = image_utils.load_image(filename, dirname=xml_dir, place_holder=False, recursive=True)
 
@@ -258,21 +283,21 @@ def import_libraries(root, xml_dir):
                 img = bpy.data.images.new(name, 32, 32)
                 img.generated_color = (1, 0, 1, 1)
 
-    # --- MATERIALS ---
     if libs.find("Materials"):
         for mat_node in libs.find("Materials").findall("Material"):
             mat = bpy.data.materials.new(mat_node.get("name"))
             reconstruct_material_nodes(mat, mat_node)
             apply_xml_properties(mat, mat_node)
 
-    # --- MESHES ---
     if libs.find("Meshes"):
         for m_node in libs.find("Meshes").findall("Mesh"):
             mesh = bpy.data.meshes.new(m_node.get("name"))
             geo = m_node.find("Geometry")
             if geo:
-                verts = [[float(x) for x in v.get("co").split(',')] for v in geo.find("Vertices").findall("V")]
-                faces = []; mat_indices = []
+                verts = [[float(x) for x in v.get("co").split(',')]
+                         for v in geo.find("Vertices").findall("V")]
+                faces = []
+                mat_indices = []
                 for p in geo.find("Polygons").findall("P"):
                     faces.append([int(x) for x in p.get("i").split(',')])
                     mat_indices.append(int(p.get("m", 0)))
@@ -282,7 +307,8 @@ def import_libraries(root, xml_dir):
                 if slots:
                     for slot in slots.findall("Slot"):
                         mat = bpy.data.materials.get(slot.get("name"))
-                        if not mat: mat = bpy.data.materials.new(slot.get("name"))
+                        if not mat:
+                            mat = bpy.data.materials.new(slot.get("name"))
                         mesh.materials.append(mat)
 
                 if len(mat_indices) == len(mesh.polygons):
@@ -294,23 +320,28 @@ def import_libraries(root, xml_dir):
                     for layer_node in geo.find("UVLayers").findall("Layer"):
                         uv_layer = mesh.uv_layers.new(name=layer_node.get("name"))
                         uv_data = []
-                        for d in layer_node.findall("d"): uv_data.append([float(x) for x in d.get("uv").split(',')])
+                        for d in layer_node.findall("d"):
+                            uv_data.append([float(x) for x in d.get("uv").split(',')])
 
                         if len(uv_data) == len(mesh.loops):
-                            for i, uv in enumerate(uv_data): uv_layer.data[i].uv = uv
-                        if layer_node.get("active") == "True": mesh.uv_layers.active = uv_layer
+                            for i, uv in enumerate(uv_data):
+                                uv_layer.data[i].uv = uv
+                        if layer_node.get("active") == "True":
+                            mesh.uv_layers.active = uv_layer
 
                 mesh.validate()
                 mesh.update()
             apply_xml_properties(mesh, m_node)
 
-    for col_name, data_col, rna_type in [("Lights", bpy.data.lights, 'POINT'), ("Cameras", bpy.data.cameras, None)]:
+    for col_name, data_col, rna_type in [
+        ("Lights", bpy.data.lights, 'POINT'),
+        ("Cameras", bpy.data.cameras, None)
+    ]:
         if libs.find(col_name):
             for node in libs.find(col_name):
                 item = data_col.new(node.get("name"), rna_type) if rna_type else data_col.new(node.get("name"))
                 apply_xml_properties(item, node)
 
-    # Armatures
     if libs.find("Armatures"):
         for arm_node in libs.find("Armatures").findall("ArmatureData"):
             arm = bpy.data.armatures.new(arm_node.get("name"))
@@ -320,52 +351,67 @@ def import_libraries(root, xml_dir):
             bpy.context.view_layer.objects.active = temp
             bpy.ops.object.mode_set(mode='EDIT')
             if arm_node.find("Bones"):
-                for b_node in arm_node.find("Bones").findall("Bone"): arm.edit_bones.new(b_node.get("name"))
+                for b_node in arm_node.find("Bones").findall("Bone"):
+                    arm.edit_bones.new(b_node.get("name"))
                 for b_node in arm_node.find("Bones").findall("Bone"):
                     eb = arm.edit_bones.get(b_node.get("name"))
                     p_name = b_node.get("parent_name")
                     if p_name and eb:
-                         parent = arm.edit_bones.get(p_name)
-                         if parent: eb.parent = parent
-                    if eb: eb.use_connect = False
+                        parent = arm.edit_bones.get(p_name)
+                        if parent:
+                            eb.parent = parent
+                    if eb:
+                        eb.use_connect = False
                 for b_node in arm_node.find("Bones").findall("Bone"):
                     eb = arm.edit_bones.get(b_node.get("name"))
                     if eb:
                         eb.head = Vector([float(x) for x in b_node.get("head").split(',')])
                         eb.tail = Vector([float(x) for x in b_node.get("tail").split(',')])
-                        if b_node.get("roll"): eb.roll = float(b_node.get("roll"))
+                        if b_node.get("roll"):
+                            eb.roll = float(b_node.get("roll"))
                 for b_node in arm_node.find("Bones").findall("Bone"):
                     eb = arm.edit_bones.get(b_node.get("name"))
-                    if eb: apply_xml_properties(eb, b_node)
+                    if eb:
+                        apply_xml_properties(eb, b_node)
             bpy.ops.object.mode_set(mode='OBJECT')
             bpy.data.objects.remove(temp)
 
-    # Actions
     if libs.find("Actions"):
         for act_node in libs.find("Actions").findall("Action"):
             action = bpy.data.actions.new(act_node.get("name"))
             apply_xml_properties(action, act_node)
             for fc_node in act_node.findall("FCurve"):
-                fcurve = action.fcurves.new(data_path=fc_node.get("data_path"), index=int(fc_node.get("array_index")))
+                fcurve = action.fcurves.new(
+                    data_path=fc_node.get("data_path"),
+                    index=int(fc_node.get("array_index"))
+                )
                 for kp_node in fc_node.findall("KP"):
                     co = [float(x) for x in kp_node.get("co").split(',')]
                     kp = fcurve.keyframe_points.insert(frame=co[0], value=co[1])
                     kp.interpolation = kp_node.get("interpolation", 'BEZIER')
-                    kp.handle_left_type = 'FREE'; kp.handle_right_type = 'FREE'
-                    if kp_node.get("hl"): kp.handle_left = [float(x) for x in kp_node.get("hl").split(',')]
-                    if kp_node.get("hr"): kp.handle_right = [float(x) for x in kp_node.get("hr").split(',')]
+                    kp.handle_left_type = 'FREE'
+                    kp.handle_right_type = 'FREE'
+                    if kp_node.get("hl"):
+                        kp.handle_left = [float(x) for x in kp_node.get("hl").split(',')]
+                    if kp_node.get("hr"):
+                        kp.handle_right = [float(x) for x in kp_node.get("hr").split(',')]
 
-def import_object(parent_node, collection):
+def import_object(parent_node, collection, parent_obj=None):
     for obj_node in parent_node.findall("Object"):
         name = obj_node.get("name", "Obj")
         data_name = obj_node.get("data_name")
         data_block = None
         if data_name:
-            data_block = bpy.data.meshes.get(data_name) or bpy.data.lights.get(data_name) or \
-                         bpy.data.cameras.get(data_name) or bpy.data.armatures.get(data_name)
+            data_block = (bpy.data.meshes.get(data_name) or
+                          bpy.data.lights.get(data_name) or
+                          bpy.data.cameras.get(data_name) or
+                          bpy.data.armatures.get(data_name))
 
         obj = bpy.data.objects.new(name, data_block)
         collection.objects.link(obj)
+
+        if parent_obj:
+            obj.parent = parent_obj
 
         if obj.type == 'ARMATURE':
             obj.show_in_front = True
@@ -379,11 +425,14 @@ def import_object(parent_node, collection):
                 mod = obj.modifiers.new(name=m_node.get("name"), type=m_node.get("type"))
                 apply_xml_properties(mod, m_node)
 
-        if obj.type == 'ARMATURE' and obj_node.find("Pose"): DEFERRED_POSES.append((obj, obj_node.find("Pose")))
-        if obj_node.get("active_action"): DEFERRED_ACTIONS.append((obj, obj_node.get("active_action")))
+        if obj.type == 'ARMATURE' and obj_node.find("Pose"):
+            DEFERRED_POSES.append((obj, obj_node.find("Pose")))
+        if obj_node.get("active_action"):
+            DEFERRED_ACTIONS.append((obj, obj_node.get("active_action")))
 
         if obj_node.find("NLA"):
-            if not obj.animation_data: obj.animation_data_create()
+            if not obj.animation_data:
+                obj.animation_data_create()
             for t_node in obj_node.find("NLA").findall("Track"):
                 track = obj.animation_data.nla_tracks.new()
                 apply_xml_properties(track, t_node)
@@ -391,65 +440,75 @@ def import_object(parent_node, collection):
                     act = bpy.data.actions.get(s_node.get("action_name"))
                     if act:
                         try:
-                            start_f = float(s_node.find("Properties/Prop[@name='frame_start']").get("value"))
+                            start_f = float(
+                                s_node.find("Properties/Prop[@name='frame_start']").get("value")
+                            )
                             strip = track.strips.new(s_node.get("name"), int(start_f), act)
                             apply_xml_properties(strip, s_node)
-                        except: pass
+                        except:
+                            pass
 
         if obj_node.find("VertexGroups"):
             for g_node in obj_node.find("VertexGroups").findall("Group"):
                 vg = obj.vertex_groups.new(name=g_node.get("name"))
                 if obj.type == 'MESH':
-                    for vw in g_node.findall("VW"): vg.add([int(vw.get("id"))], float(vw.get("w")), 'REPLACE')
+                    for vw in g_node.findall("VW"):
+                        vg.add([int(vw.get("id"))], float(vw.get("w")), 'REPLACE')
 
-        import_object(obj_node, collection)
+        import_object(obj_node, collection, parent_obj=obj)
 
 def import_collections(parent_xml, parent_col):
     for col_node in parent_xml.findall("Collection"):
-        name = col_node.get("name", "Col")
-        existing = bpy.data.collections.get(name)
-        if existing and parent_col.name == "Collection" and name == "Collection":
-            import_object(col_node, existing); import_collections(col_node, existing)
+        name = col_node.get("name", "Collection")
+
+        if name == parent_col.name:
+            target_col = parent_col
         else:
-            new_col = bpy.data.collections.new(name)
-            parent_col.children.link(new_col)
-            import_object(col_node, new_col); import_collections(col_node, new_col)
+            target_col = bpy.data.collections.new(name)
+            parent_col.children.link(target_col)
+
+        import_object(col_node, target_col, parent_obj=None)
+        import_collections(col_node, target_col)
 
 def apply_deferred_poses():
     print(f"Applying {len(DEFERRED_POSES)} deferred poses...")
     for obj, pose_node in DEFERRED_POSES:
-        if not obj.pose: continue
+        if not obj.pose:
+            continue
         for pb_node in pose_node.findall("HBone"):
             pbone = obj.pose.bones.get(pb_node.get("name"))
-            if pbone: apply_xml_properties(pbone, pb_node)
+            if pbone:
+                apply_xml_properties(pbone, pb_node)
 
 def apply_deferred_actions():
     print(f"Applying {len(DEFERRED_ACTIONS)} deferred actions...")
     for obj, act_name in DEFERRED_ACTIONS:
         act = bpy.data.actions.get(act_name)
         if act:
-            if not obj.animation_data: obj.animation_data_create()
+            if not obj.animation_data:
+                obj.animation_data_create()
             obj.animation_data.action = act
 
 def resolve_hierarchy():
     print(f"Resolving hierarchy for {len(HIERARCHY_MAP)} objects...")
     valid_objects = [o for o in HIERARCHY_MAP.keys() if isinstance(o, bpy.types.Object)]
 
-    # First pass: set parent relationships
     for obj in valid_objects:
         data = HIERARCHY_MAP[obj]
         if data['parent']:
             parent = bpy.data.objects.get(data['parent'])
             if parent:
                 obj.parent = parent
-                if data['type']: obj.parent_type = data['type']
-                if data['bone']: obj.parent_bone = data['bone']
-                if data['inv']: obj.matrix_parent_inverse = data['inv']
+                if data['type']:
+                    obj.parent_type = data['type']
+                if data['bone']:
+                    obj.parent_bone = data['bone']
+                if data['inv']:
+                    obj.matrix_parent_inverse = data['inv']
 
-    # Second pass: apply transforms to all objects
     for obj in valid_objects:
         data = HIERARCHY_MAP[obj]
-        if 'rotation_mode' in data:
+        if 'rotation_mode' in data and data['rotation_mode'] is not None:
             obj.rotation_mode = data['rotation_mode']
         for prop_name, val in data['transforms']:
             try:
@@ -459,16 +518,21 @@ def resolve_hierarchy():
 
 def resolve_links():
     for obj, prop_name, target_name in DEFERRED_LINKS:
-        target = bpy.data.objects.get(target_name) or bpy.data.meshes.get(target_name) or \
-                 bpy.data.materials.get(target_name) or bpy.data.actions.get(target_name) or \
-                 bpy.data.armatures.get(target_name) or bpy.data.cameras.get(target_name) or \
-                 bpy.data.lights.get(target_name) or bpy.data.images.get(target_name)
+        target = (bpy.data.objects.get(target_name) or
+                  bpy.data.meshes.get(target_name) or
+                  bpy.data.materials.get(target_name) or
+                  bpy.data.actions.get(target_name) or
+                  bpy.data.armatures.get(target_name) or
+                  bpy.data.cameras.get(target_name) or
+                  bpy.data.lights.get(target_name) or
+                  bpy.data.images.get(target_name))
         if target:
-            try: setattr(obj, prop_name, target)
-            except: pass
+            try:
+                setattr(obj, prop_name, target)
+            except:
+                pass
 
 def importFromXML(filename):
-    # Use OS.GETCWD() to locate file in current shell directory
     cwd = os.getcwd()
     abs_path = os.path.join(cwd, filename)
     print(f"Importing from: {abs_path}")
@@ -486,14 +550,15 @@ def importFromXML(filename):
     scenes = root.find("Scenes")
     if scenes:
         for s_node in scenes.findall("Scene"):
-            scene = bpy.data.scenes.new(s_node.get("name")) if len(bpy.data.scenes)==0 else bpy.data.scenes[0]
+            scene = bpy.data.scenes.new(s_node.get("name")) if len(bpy.data.scenes) == 0 else bpy.data.scenes[0]
             scene.name = s_node.get("name")
-            if s_node.get("frame_start"): scene.frame_start = int(s_node.get("frame_start"))
-            if s_node.get("frame_end"): scene.frame_end = int(s_node.get("frame_end"))
+            if s_node.get("frame_start"):
+                scene.frame_start = int(s_node.get("frame_start"))
+            if s_node.get("frame_end"):
+                scene.frame_end = int(s_node.get("frame_end"))
 
             bpy.context.window.scene = scene
             import_collections(s_node, scene.collection)
-            import_object(s_node, scene.collection)
             apply_xml_properties(scene, s_node)
 
     resolve_hierarchy()
@@ -506,7 +571,6 @@ def importFromXML(filename):
 
 try:
     importFromXML("sandrunner_bike.blxml")
-    # importFromXML("gramps_animated_full_1.blxml")
 except:
     import traceback
     traceback.print_exc()
