@@ -266,8 +266,12 @@ def traverse_scenes(root):
             if obj.parent is None: traverse_object(obj, s_node)
 
 def exportToXML(infile, outfile):
-    bpy.ops.wm.open_mainfile(filepath=infile)
+    # bpy.ops.wm.open_mainfile(filepath=infile)
     abs_outfile = os.path.abspath(outfile)
+    xml_dir = os.path.dirname(abs_outfile) # Ensure the directory exists
+    if not os.path.exists(xml_dir):
+        os.makedirs(xml_dir, exist_ok=True)
+
     print(f"--- START EXPORT ---")
     root = ET.Element("BlenderData", source=infile)
     traverse_libraries(root, abs_outfile)

@@ -71,6 +71,7 @@ def apply_xml_properties(blender_obj, xml_node):
         elif name == 'parent_bone': HIERARCHY_MAP[blender_obj]['bone'] = val
         elif name == 'matrix_parent_inverse': HIERARCHY_MAP[blender_obj]['inv'] = val
         elif name == 'matrix_world': HIERARCHY_MAP[blender_obj]['world_matrix'] = val
+        elif name == 'rotation_mode': HIERARCHY_MAP[blender_obj]['rotation_mode'] = val
         elif name in ['location', 'rotation_euler', 'rotation_quaternion', 'scale']:
             HIERARCHY_MAP[blender_obj]['transforms'].append((name, val))
         elif prop.get("type") == 'POINTER':
@@ -433,6 +434,8 @@ def apply_deferred_actions():
 def resolve_hierarchy():
     print(f"Resolving hierarchy for {len(HIERARCHY_MAP)} objects...")
     valid_objects = [o for o in HIERARCHY_MAP.keys() if isinstance(o, bpy.types.Object)]
+
+    # First pass: set parent relationships
     for obj in valid_objects:
         data = HIERARCHY_MAP[obj]
         if data['parent']:
@@ -442,11 +445,17 @@ def resolve_hierarchy():
                 if data['type']: obj.parent_type = data['type']
                 if data['bone']: obj.parent_bone = data['bone']
                 if data['inv']: obj.matrix_parent_inverse = data['inv']
+
+    # Second pass: apply transforms to all objects
     for obj in valid_objects:
         data = HIERARCHY_MAP[obj]
+        if 'rotation_mode' in data:
+            obj.rotation_mode = data['rotation_mode']
         for prop_name, val in data['transforms']:
-            try: setattr(obj, prop_name, val)
-            except: pass
+            try:
+                setattr(obj, prop_name, val)
+            except Exception as e:
+                print(f"Failed to set {prop_name} on {obj.name}: {e}")
 
 def resolve_links():
     for obj, prop_name, target_name in DEFERRED_LINKS:
