@@ -2,6 +2,8 @@ import bpy
 import os
 import xml.etree.ElementTree as ET
 import mathutils
+from mathutils import Vector
+
 
 # ------------------------------------------------------------
 # BlenderXMLExporter
@@ -324,19 +326,36 @@ class BlenderXMLExporter:
 
         # Armatures
         arm_node = ET.SubElement(libs_node, "Armatures")
+
         for arm in bpy.data.armatures:
             a_node = ET.SubElement(arm_node, "ArmatureData")
             self._write_rna_properties(a_node, arm)
+
             bones_node = ET.SubElement(a_node, "Bones")
-            for bone in arm.bones:
-                b_node = ET.SubElement(bones_node, "Bone")
-                self._write_rna_properties(b_node, bone)
-                if bone.parent:
-                    b_node.set("parent_name", bone.parent.name)
-                b_node.set("head", f"{bone.head.x},{bone.head.y},{bone.head.z}")
-                b_node.set("tail", f"{bone.tail.x},{bone.tail.y},{bone.tail.z}")
-                if hasattr(bone, "roll"):
-                    b_node.set("roll", str(bone.roll))
+
+            # Find the armature object that uses this armature data
+            arm_obj = next((obj for obj in bpy.data.objects if obj.data == arm), None)
+            if not arm_obj:
+                continue
+
+            # Export bones using pose.bones (FBX stores rest pose here)
+            for pbone in arm_obj.pose.bones:
+                # Rest pose matrix in armature-local space
+                m = pbone.matrix.copy()
+
+                # Head is the translation of the matrix
+                head = m.to_translation()
+
+                # Tail = head + local Z axis * bone length
+                direction = m.to_3x3() @ Vector((0.0, 0.0, pbone.bone.length))
+                tail = head + direction
+
+                ET.SubElement(bones_node, "Bone", {
+                    "name": pbone.name,
+                    "parent_name": pbone.parent.name if pbone.parent else "",
+                    "head": f"{head.x},{head.y},{head.z}",
+                    "tail": f"{tail.x},{tail.y},{tail.z}"
+                })
 
         # Actions
         actions_node = ET.SubElement(libs_node, "Actions")

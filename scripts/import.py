@@ -99,6 +99,10 @@ def apply_xml_properties(blender_obj, xml_node):
             data['type'] = val
         elif name == 'parent_bone':
             data['bone'] = val
+        elif name == 'head':
+            data['head'] = val
+        elif name == 'tail':
+            data['tail'] = val
         elif name == 'matrix_parent_inverse':
             data['inv'] = val
         elif name == 'matrix_world':
@@ -248,6 +252,57 @@ def reconstruct_material_nodes(mat, mat_node):
     setup_input(["Emission Color", "Emission"], "emission")
     setup_input("Alpha", "alpha")
 
+def rebuild_armature_from_xml(armature_data_node):
+    from mathutils import Vector
+
+    # Create armature data + object
+    arm_name = armature_data_node.get("name", "Armature")
+    arm_data = bpy.data.armatures.new(arm_name)
+    arm_obj = bpy.data.objects.new(arm_name, arm_data)
+    # Register armature object so resolve_hierarchy can find it
+    HIERARCHY_MAP[arm_obj] = {
+        'parent': None,
+        'type': None,
+        'bone': None,
+        'inv': None,
+        'world_matrix': None,
+        'transforms': [],
+        'rotation_mode': None,
+    }
+    HIERARCHY_MAP[arm_data] = {'object': arm_obj}
+
+    bpy.context.scene.collection.objects.link(arm_obj)
+
+    # Make active and enter edit mode
+    bpy.context.view_layer.objects.active = arm_obj
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    bones_node = armature_data_node.find("Bones")
+    bone_map = {}
+
+    # First pass: create all edit bones with exported world-space head/tail
+    for bone_node in bones_node.iter("Bone"):
+        name = bone_node.get("name")
+        head = Vector(map(float, bone_node.get("head").split(",")))
+        tail = Vector(map(float, bone_node.get("tail").split(",")))
+
+        eb = arm_data.edit_bones.new(name)
+        eb.head = head
+        eb.tail = tail
+        bone_map[name] = eb
+
+    # Second pass: assign parents
+    for bone_node in bones_node.iter("Bone"):
+        name = bone_node.get("name")
+        parent_name = bone_node.get("parent_name")
+        if parent_name and parent_name in bone_map:
+            bone_map[name].parent = bone_map[parent_name]
+
+    # Exit edit mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    return arm_obj
+
 def import_libraries(root, xml_dir):
     libs = root.find("Libraries")
     if not libs:
@@ -349,37 +404,37 @@ def import_libraries(root, xml_dir):
 
     if libs.find("Armatures"):
         for arm_node in libs.find("Armatures").findall("ArmatureData"):
-            arm = bpy.data.armatures.new(arm_node.get("name"))
-            apply_xml_properties(arm, arm_node)
-            temp = bpy.data.objects.new("Temp", arm)
-            bpy.context.collection.objects.link(temp)
-            bpy.context.view_layer.objects.active = temp
-            bpy.ops.object.mode_set(mode='EDIT')
-            if arm_node.find("Bones"):
-                for b_node in arm_node.find("Bones").findall("Bone"):
-                    arm.edit_bones.new(b_node.get("name"))
-                for b_node in arm_node.find("Bones").findall("Bone"):
-                    eb = arm.edit_bones.get(b_node.get("name"))
-                    p_name = b_node.get("parent_name")
-                    if p_name and eb:
-                        parent = arm.edit_bones.get(p_name)
-                        if parent:
-                            eb.parent = parent
-                    if eb:
-                        eb.use_connect = False
-                for b_node in arm_node.find("Bones").findall("Bone"):
-                    eb = arm.edit_bones.get(b_node.get("name"))
-                    if eb:
-                        eb.head = Vector([float(x) for x in b_node.get("head").split(',')])
-                        eb.tail = Vector([float(x) for x in b_node.get("tail").split(',')])
-                        if b_node.get("roll"):
-                            eb.roll = float(b_node.get("roll"))
-                for b_node in arm_node.find("Bones").findall("Bone"):
-                    eb = arm.edit_bones.get(b_node.get("name"))
-                    #if eb:
-                        #apply_xml_properties(eb, b_node)
-            bpy.ops.object.mode_set(mode='OBJECT')
-            bpy.data.objects.remove(temp)
+            rebuild_armature_from_xml(arm_node)
+
+#            arm = bpy.data.armatures.new(arm_node.get("name"))
+#            apply_xml_properties(arm, arm_node)
+#            temp = bpy.data.objects.new("Temp", arm)
+#            bpy.context.collection.objects.link(temp)
+#            bpy.context.view_layer.objects.active = temp
+#            bpy.ops.object.mode_set(mode='EDIT')
+#            if arm_node.find("Bones"):
+#                for b_node in arm_node.find("Bones").findall("Bone"):
+#                    arm.edit_bones.new(b_node.get("name"))
+#                for b_node in arm_node.find("Bones").findall("Bone"):
+#                    eb = arm.edit_bones.get(b_node.get("name"))
+#                    if eb:
+#                        if b_node.get("head"):
+#                            eb.head = Vector([float(x) for x in b_node.get("head").split(',')])
+#                        if b_node.get("tail"):
+#                            eb.tail = Vector([float(x) for x in b_node.get("tail").split(',')])
+#                        if b_node.get("roll"):
+#                            eb.roll = float(b_node.get("roll"))
+#                for b_node in arm_node.find("Bones").findall("Bone"):
+#                    eb = arm.edit_bones.get(b_node.get("name"))
+#                    p_name = b_node.get("parent_name")
+#                    if p_name:
+#                        parent = arm.edit_bones.get(p_name)
+#                        if parent:
+#                            eb.parent = parent
+#                            eb.use_connect = False
+#
+#            bpy.ops.object.mode_set(mode='OBJECT')
+#            bpy.data.objects.remove(temp)
 
     if libs.find("Actions"):
         for act_node in libs.find("Actions").findall("Action"):
@@ -412,8 +467,22 @@ def import_object(parent_node, collection, parent_obj=None):
                           bpy.data.cameras.get(data_name) or
                           bpy.data.armatures.get(data_name))
 
-        obj = bpy.data.objects.new(name, data_block)
-        collection.objects.link(obj)
+        if data_name and data_name in bpy.data.armatures:
+            arm_data = bpy.data.armatures[data_name]
+            if arm_data in HIERARCHY_MAP and 'object' in HIERARCHY_MAP[arm_data]:
+                obj = HIERARCHY_MAP[arm_data]['object']
+                if obj.name not in collection.objects:
+                    collection.objects.link(obj)
+                apply_xml_properties(obj, obj_node)
+                import_object(obj_node, collection, parent_obj=obj)
+                return
+
+        existing_obj = next((o for o in bpy.data.objects if o.name == name and o.data == data_block), None)
+        if existing_obj:
+            obj = existing_obj
+        else:
+            obj = bpy.data.objects.new(name, data_block)
+            collection.objects.link(obj)
 
         if parent_obj:
             obj.parent = parent_obj
@@ -506,12 +575,17 @@ def resolve_hierarchy():
         if data['parent']:
             parent = bpy.data.objects.get(data['parent'])
             if parent:
-                obj.parent = parent
+                if parent and parent is not obj:
+                    obj.parent = parent
                 if data['type']:
                     obj.parent_type = data['type']
                 if data['bone']:
                     obj.parent_type = 'BONE'
                     obj.parent_bone = data['bone']
+                    if hasattr(obj, "head"):
+                        obj.head = data['head']
+                    if hasattr(obj, "tail"):
+                        obj.tail = data['tail']
                 if data['inv']:
                     obj.matrix_parent_inverse = data['inv']
             else:
