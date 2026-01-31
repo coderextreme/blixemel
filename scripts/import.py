@@ -79,31 +79,36 @@ def apply_xml_properties(blender_obj, xml_node):
             'bone': None,
             'inv': None,
             'world_matrix': None,
-            'transforms': []
+            'transforms': [],
+            'rotation_mode': None,
         }
+
+    data = HIERARCHY_MAP[blender_obj]
 
     for prop in props.findall("Prop"):
         name = prop.get("name")
         val = parse_typed_value(prop.get("value"), prop.get("type"), prop.get("structure_type", ""))
 
-        if name in ['name', 'type', 'is_readonly', 'data', 'rotation_mode',
+        if name in ['name', 'type', 'is_readonly', 'data',
                     'matrix_basis', 'matrix_local', 'matrix_custom']:
             continue
 
         if name == 'parent':
-            HIERARCHY_MAP[blender_obj]['parent'] = val
+            data['parent'] = val
         elif name == 'parent_type':
-            HIERARCHY_MAP[blender_obj]['type'] = val
+            data['type'] = val
         elif name == 'parent_bone':
-            HIERARCHY_MAP[blender_obj]['bone'] = val
+            data['bone'] = val
         elif name == 'matrix_parent_inverse':
-            HIERARCHY_MAP[blender_obj]['inv'] = val
+            data['inv'] = val
         elif name == 'matrix_world':
-            HIERARCHY_MAP[blender_obj]['world_matrix'] = val
+            data['world_matrix'] = val
         elif name == 'rotation_mode':
-            HIERARCHY_MAP[blender_obj]['rotation_mode'] = val
+            data['rotation_mode'] = val
         elif name in ['location', 'rotation_euler', 'rotation_quaternion', 'scale']:
-            HIERARCHY_MAP[blender_obj]['transforms'].append((name, val))
+            # Option A: only store local transforms if no matrix_world
+            if data['world_matrix'] is None:
+                data['transforms'].append((name, val))
         elif prop.get("type") == 'POINTER':
             DEFERRED_LINKS.append((blender_obj, name, val))
         else:
@@ -371,8 +376,8 @@ def import_libraries(root, xml_dir):
                             eb.roll = float(b_node.get("roll"))
                 for b_node in arm_node.find("Bones").findall("Bone"):
                     eb = arm.edit_bones.get(b_node.get("name"))
-                    if eb:
-                        apply_xml_properties(eb, b_node)
+                    #if eb:
+                        #apply_xml_properties(eb, b_node)
             bpy.ops.object.mode_set(mode='OBJECT')
             bpy.data.objects.remove(temp)
 
@@ -464,8 +469,10 @@ def import_collections(parent_xml, parent_col):
         if name == parent_col.name:
             target_col = parent_col
         else:
-            target_col = bpy.data.collections.new(name)
-            parent_col.children.link(target_col)
+            target_col = bpy.data.collections.get(name)
+            if not target_col:
+                target_col = bpy.data.collections.new(name)
+                parent_col.children.link(target_col)
 
         import_object(col_node, target_col, parent_obj=None)
         import_collections(col_node, target_col)
@@ -493,6 +500,7 @@ def resolve_hierarchy():
     print(f"Resolving hierarchy for {len(HIERARCHY_MAP)} objects...")
     valid_objects = [o for o in HIERARCHY_MAP.keys() if isinstance(o, bpy.types.Object)]
 
+    # Parent relationships from properties (if any)
     for obj in valid_objects:
         data = HIERARCHY_MAP[obj]
         if data['parent']:
@@ -502,19 +510,32 @@ def resolve_hierarchy():
                 if data['type']:
                     obj.parent_type = data['type']
                 if data['bone']:
+                    obj.parent_type = 'BONE'
                     obj.parent_bone = data['bone']
                 if data['inv']:
                     obj.matrix_parent_inverse = data['inv']
+            else:
+                print(f"WARNING: Parent '{data['parent']}' not found for {obj.name}")
 
+    # Transforms
     for obj in valid_objects:
         data = HIERARCHY_MAP[obj]
-        if 'rotation_mode' in data and data['rotation_mode'] is not None:
+
+        if data['rotation_mode'] is not None:
             obj.rotation_mode = data['rotation_mode']
-        for prop_name, val in data['transforms']:
+
+        if data['world_matrix'] is not None:
+            # Option A: matrix_world wins, ignore local transforms
             try:
-                setattr(obj, prop_name, val)
+                obj.matrix_world = data['world_matrix']
             except Exception as e:
-                print(f"Failed to set {prop_name} on {obj.name}: {e}")
+                print(f"Failed to set matrix_world on {obj.name}: {e}")
+        else:
+            for prop_name, val in data['transforms']:
+                try:
+                    setattr(obj, prop_name, val)
+                except Exception as e:
+                    print(f"Failed to set {prop_name} on {obj.name}: {e}")
 
 def resolve_links():
     for obj, prop_name, target_name in DEFERRED_LINKS:
@@ -533,8 +554,7 @@ def resolve_links():
                 pass
 
 def importFromXML(filename):
-    cwd = os.getcwd()
-    abs_path = os.path.join(cwd, filename)
+    abs_path = os.path.abspath(filename)
     print(f"Importing from: {abs_path}")
 
     if not os.path.exists(abs_path):

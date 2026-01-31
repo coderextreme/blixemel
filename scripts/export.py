@@ -458,13 +458,11 @@ class BlenderXMLExporter:
 if __name__ == "__main__":
     bpy.ops.wm.open_mainfile(filepath="sandrunner_bike.blend")
     # bpy.ops.wm.open_mainfile(filepath="gramps_animated_full_1.blend")
-    # Default: export next to the current .blend file, or CWD if unsaved
-    if bpy.data.filepath:
+    if bpy.data.filepath and "Program Files" not in bpy.data.filepath:
         base = os.path.splitext(bpy.data.filepath)[0]
-        default_xml = base + ".blxml"
     else:
-        default_xml = os.path.join(os.getcwd(), "export.blxml")
+        base = "C:/Users/jcarl/blixemel/scripts/sandrunner_bike"
+    default_xml = base + ".blxml"
 
     exporter = BlenderXMLExporter(default_xml)
     exporter.export()
-
