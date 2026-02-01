@@ -147,23 +147,17 @@ class BlenderXMLExporter:
 
         props_container = ET.SubElement(xml_element, "Properties")
 
-        # Explicit transform export (rotation_mode, matrix_world, rotation_euler, rotation_quaternion)
+        # Explicit transform export: rotation_mode, rotation_euler, rotation_quaternion.
+        # location and scale come through the RNA scan below.
+        # matrix_world is intentionally NOT exported — it is derived from the
+        # parent chain + local transforms.  Setting it on import after parenting
+        # double-transforms every parented object.
         rot_mode = getattr(blender_object, "rotation_mode", "XYZ")
         ET.SubElement(props_container, "Prop", {
             "name": "rotation_mode",
             "type": "STRING",
             "value": rot_mode
         })
-
-        if hasattr(blender_object, "matrix_world"):
-            mw = blender_object.matrix_world
-            mw_str = ",".join(str(x) for row in mw for x in row)
-            ET.SubElement(props_container, "Prop", {
-                "name": "matrix_world",
-                "type": "MATRIX_4X4",
-                "value": mw_str,
-                "structure_type": "MATRIX_4X4"
-            })
 
         if hasattr(blender_object, "rotation_euler"):
             re = blender_object.rotation_euler
@@ -185,6 +179,7 @@ class BlenderXMLExporter:
 
         skip_props = {
             'matrix_basis', 'matrix_local', 'matrix_custom', 'matrix',
+            'matrix_world',
             'is_readonly', 'data'
         }
 
@@ -403,29 +398,22 @@ class BlenderXMLExporter:
             if not arm_obj:
                 continue
 
+            # The Object name can differ from the data name.  Other objects
+            # reference this armature via parent = <Object name>, so we must
+            # preserve it separately.
+            a_node.set("object_name", arm_obj.name)
+
             frame_start = bpy.context.scene.frame_start
             frame_end = bpy.context.scene.frame_end
             export_baked_pose_samples(arm_obj, frame_start, frame_end, a_node)
 
-
-
-            # Export bones using pose.bones (FBX stores rest pose here)
+            # Export bones — head/tail are in armature-local space
             for pbone in arm_obj.pose.bones:
-                # Rest pose matrix in armature-local space
-                m = pbone.matrix.copy()
-
-                # Head is the translation of the matrix
-                head = m.to_translation()
-
-                # Tail = head + local Z axis * bone length
-                direction = m.to_3x3() @ Vector((0.0, 0.0, pbone.bone.length))
-                tail = head + direction
-
                 ET.SubElement(bones_node, "Bone", {
                     "name": pbone.name,
                     "parent_name": pbone.parent.name if pbone.parent else "",
-                    "head": f"{head.x},{head.y},{head.z}",
-                    "tail": f"{tail.x},{tail.y},{tail.z}"
+                    "head": f"{pbone.bone.head.x},{pbone.bone.head.y},{pbone.bone.head.z}",
+                    "tail": f"{pbone.bone.tail.x},{pbone.bone.tail.y},{pbone.bone.tail.z}"
                 })
 
         # Actions

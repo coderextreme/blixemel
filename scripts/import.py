@@ -78,7 +78,6 @@ def apply_xml_properties(blender_obj, xml_node):
             'type': None,
             'bone': None,
             'inv': None,
-            'world_matrix': None,
             'transforms': [],
             'rotation_mode': None,
         }
@@ -106,13 +105,13 @@ def apply_xml_properties(blender_obj, xml_node):
         elif name == 'matrix_parent_inverse':
             data['inv'] = val
         elif name == 'matrix_world':
-            data['world_matrix'] = val
+            # Derived value — skip.  Setting matrix_world after parenting
+            # double-transforms the object.  We rely on local transforms only.
+            pass
         elif name == 'rotation_mode':
             data['rotation_mode'] = val
         elif name in ['location', 'rotation_euler', 'rotation_quaternion', 'scale']:
-            # Option A: only store local transforms if no matrix_world
-            if data['world_matrix'] is None:
-                data['transforms'].append((name, val))
+            data['transforms'].append((name, val))
         elif prop.get("type") == 'POINTER':
             DEFERRED_LINKS.append((blender_obj, name, val))
         else:
@@ -290,17 +289,19 @@ def reconstruct_material_nodes(mat, mat_node):
 def rebuild_armature_from_xml(armature_data_node):
     from mathutils import Vector
 
-    # Create armature data + object
-    arm_name = armature_data_node.get("name", "Armature")
-    arm_data = bpy.data.armatures.new(arm_name)
-    arm_obj = bpy.data.objects.new(arm_name, arm_data)
+    # Data block name comes from the <ArmatureData name="..."> attribute.
+    # Object name can differ — it was stored separately as object_name.
+    arm_data_name = armature_data_node.get("name", "Armature")
+    arm_obj_name  = armature_data_node.get("object_name", arm_data_name)
+
+    arm_data = bpy.data.armatures.new(arm_data_name)
+    arm_obj  = bpy.data.objects.new(arm_obj_name, arm_data)
     # Register armature object so resolve_hierarchy can find it
     HIERARCHY_MAP[arm_obj] = {
         'parent': None,
         'type': None,
         'bone': None,
         'inv': None,
-        'world_matrix': None,
         'transforms': [],
         'rotation_mode': None,
     }
@@ -521,7 +522,7 @@ def import_object(parent_node, collection, parent_obj=None):
 
                 apply_xml_properties(obj, obj_node)
                 import_object(obj_node, collection, parent_obj=obj)
-                return
+                continue
 
         existing_obj = next((o for o in bpy.data.objects if o.name == name and o.data == data_block), None)
         if existing_obj:
@@ -535,7 +536,6 @@ def import_object(parent_node, collection, parent_obj=None):
             'type': None,
             'bone': None,
             'inv': None,
-            'world_matrix': None,
             'transforms': [],
             'rotation_mode': None,
         }
@@ -622,48 +622,37 @@ def resolve_hierarchy():
     print(f"Resolving hierarchy for {len(HIERARCHY_MAP)} objects...")
     valid_objects = [o for o in HIERARCHY_MAP.keys() if isinstance(o, bpy.types.Object)]
 
-    # Parent relationships from properties (if any)
+    # Parent relationships from properties
     for obj in valid_objects:
         data = HIERARCHY_MAP[obj]
         if data['parent']:
             parent = bpy.data.objects.get(data['parent'])
-            if parent:
-                if parent and parent is not obj:
-                    obj.parent = parent
+            if parent and parent is not obj:
+                obj.parent = parent
                 if data['type']:
                     obj.parent_type = data['type']
                 if data['bone']:
                     obj.parent_type = 'BONE'
                     obj.parent_bone = data['bone']
                     print("Parenting", obj.name, "to bone:", obj.parent_bone)
-                    if hasattr(obj, "head"):
-                        obj.head = data['head']
-                    if hasattr(obj, "tail"):
-                        obj.tail = data['tail']
                 if data['inv']:
                     obj.matrix_parent_inverse = data['inv']
             else:
                 print(f"WARNING: Parent '{data['parent']}' not found for {obj.name}")
 
-    # Transforms
+    # Transforms — always local (location, rotation, scale).
+    # matrix_world is derived and must never be set directly after parenting.
     for obj in valid_objects:
         data = HIERARCHY_MAP[obj]
 
         if data['rotation_mode'] is not None:
             obj.rotation_mode = data['rotation_mode']
 
-        if data['world_matrix'] is not None:
-            # Option A: matrix_world wins, ignore local transforms
+        for prop_name, val in data['transforms']:
             try:
-                obj.matrix_world = data['world_matrix']
+                setattr(obj, prop_name, val)
             except Exception as e:
-                print(f"Failed to set matrix_world on {obj.name}: {e}")
-        else:
-            for prop_name, val in data['transforms']:
-                try:
-                    setattr(obj, prop_name, val)
-                except Exception as e:
-                    print(f"Failed to set {prop_name} on {obj.name}: {e}")
+                print(f"Failed to set {prop_name} on {obj.name}: {e}")
 
 def resolve_links():
     for obj, prop_name, target_name in DEFERRED_LINKS:
