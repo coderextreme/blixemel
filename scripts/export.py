@@ -9,6 +9,71 @@ from mathutils import Vector
 # BlenderXMLExporter
 # ------------------------------------------------------------
 
+def export_baked_pose_samples(arm_obj, frame_start, frame_end, xml_parent):
+    scene = bpy.context.scene
+    samples_node = ET.SubElement(xml_parent, "BakedPose")
+
+    for frame in range(frame_start, frame_end + 1):
+        scene.frame_set(frame)
+        frame_node = ET.SubElement(samples_node, "Frame", {"f": str(frame)})
+
+        for pbone in arm_obj.pose.bones:
+            pb_node = ET.SubElement(frame_node, "Bone", {"name": pbone.name})
+
+            loc = pbone.location
+            rot = pbone.rotation_quaternion
+            scl = pbone.scale
+
+            ET.SubElement(pb_node, "Loc", {
+                "v": f"{loc.x},{loc.y},{loc.z}"
+            })
+            ET.SubElement(pb_node, "RotQ", {
+                "v": f"{rot.w},{rot.x},{rot.y},{rot.z}"
+            })
+            ET.SubElement(pb_node, "Scale", {
+                "v": f"{scl.x},{scl.y},{scl.z}"
+            })
+
+def bake_action_from_nla(arm_obj, frame_start, frame_end):
+    scene = bpy.context.scene
+
+    # Ensure animation_data exists
+    if arm_obj.animation_data is None:
+        arm_obj.animation_data_create()
+
+    baked_action = bpy.data.actions.new(name=f"{arm_obj.name}_Baked")
+    print("BAKED TYPE:", type(baked_action), baked_action)
+    print("HAS FCURVES:", hasattr(baked_action, "fcurves"))
+    arm_obj.animation_data.action = baked_action
+
+    fcurves = {}
+
+    def ensure_curve(path, index):
+        key = (path, index)
+        if key not in fcurves:
+            fcurves[key] = baked_action.fcurves.new(data_path=path, index=index)
+        return fcurves[key]
+
+    for frame in range(frame_start, frame_end + 1):
+        scene.frame_set(frame)
+
+        for pbone in arm_obj.pose.bones:
+            base = f'pose.bones["{pbone.name}"]'
+
+            loc = pbone.location
+            for i in range(3):
+                ensure_curve(base + ".location", i).keyframe_points.insert(frame, loc[i])
+
+            rot = pbone.rotation_quaternion
+            for i in range(4):
+                ensure_curve(base + ".rotation_quaternion", i).keyframe_points.insert(frame, rot[i])
+
+            scl = pbone.scale
+            for i in range(3):
+                ensure_curve(base + ".scale", i).keyframe_points.insert(frame, scl[i])
+
+    return baked_action
+
 class BlenderXMLExporter:
     def __init__(self, output_xml_path: str):
         self.output_xml_path = os.path.abspath(output_xml_path)
@@ -338,6 +403,12 @@ class BlenderXMLExporter:
             if not arm_obj:
                 continue
 
+            frame_start = bpy.context.scene.frame_start
+            frame_end = bpy.context.scene.frame_end
+            export_baked_pose_samples(arm_obj, frame_start, frame_end, a_node)
+
+
+
             # Export bones using pose.bones (FBX stores rest pose here)
             for pbone in arm_obj.pose.bones:
                 # Rest pose matrix in armature-local space
@@ -359,6 +430,7 @@ class BlenderXMLExporter:
 
         # Actions
         actions_node = ET.SubElement(libs_node, "Actions")
+        print(f"number of actions = {bpy.data.actions}")
         for action in bpy.data.actions:
             act_node = ET.SubElement(actions_node, "Action")
             self._write_rna_properties(act_node, action)
@@ -375,6 +447,9 @@ class BlenderXMLExporter:
                             "hr": f"{kp.handle_right.x},{kp.handle_right.y}",
                             "interpolation": kp.interpolation
                         })
+
+            else:
+                print(f"action {action.name} has no fcurves")
 
     def _export_image_file(self, img, xml_node):
         try:

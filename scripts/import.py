@@ -121,6 +121,41 @@ def apply_xml_properties(blender_obj, xml_node):
             except:
                 pass
 
+def rebuild_action_from_baked_pose(arm_obj, baked_node, action_name="BakedFromXML"):
+    scene = bpy.context.scene
+
+    # Ensure animation_data exists
+    if not arm_obj.animation_data:
+        arm_obj.animation_data_create()
+
+    action = bpy.data.actions.new(action_name)
+    arm_obj.animation_data.action = action
+
+    for frame_node in baked_node.findall("Frame"):
+        f = int(float(frame_node.get("f", "0")))
+        scene.frame_set(f)
+
+        for bone_node in frame_node.findall("Bone"):
+            name = bone_node.get("name")
+            pbone = arm_obj.pose.bones.get(name)
+            if not pbone:
+                continue
+
+            loc = [float(x) for x in bone_node.find("Loc").get("v").split(",")]
+            rot = [float(x) for x in bone_node.find("RotQ").get("v").split(",")]
+            scl = [float(x) for x in bone_node.find("Scale").get("v").split(",")]
+
+            pbone.location = loc
+            pbone.rotation_mode = 'QUATERNION'
+            pbone.rotation_quaternion = rot
+            pbone.scale = scl
+
+            pbone.keyframe_insert(data_path="location", frame=f)
+            pbone.keyframe_insert(data_path="rotation_quaternion", frame=f)
+            pbone.keyframe_insert(data_path="scale", frame=f)
+
+    return action
+
 def rebuild_full_node_graph(mat, nodegraph_node):
     tree = mat.node_tree
     tree.nodes.clear()
@@ -297,9 +332,14 @@ def rebuild_armature_from_xml(armature_data_node):
         parent_name = bone_node.get("parent_name")
         if parent_name and parent_name in bone_map:
             bone_map[name].parent = bone_map[parent_name]
+            print("Parenting bone ", name, "to bone:", parent_name)
 
     # Exit edit mode
     bpy.ops.object.mode_set(mode='OBJECT')
+
+    baked_node = armature_data_node.find("BakedPose")
+    if baked_node is not None:
+        rebuild_action_from_baked_pose(arm_obj, baked_node, action_name="Armature|Idle_Object_7")
 
     return arm_obj
 
@@ -473,6 +513,12 @@ def import_object(parent_node, collection, parent_obj=None):
                 obj = HIERARCHY_MAP[arm_data]['object']
                 if obj.name not in collection.objects:
                     collection.objects.link(obj)
+
+                if obj.type == 'ARMATURE' and obj_node.find("Pose"):
+                    DEFERRED_POSES.append((obj, obj_node.find("Pose")))
+                if obj_node.get("active_action"):
+                    DEFERRED_ACTIONS.append((obj, obj_node.get("active_action")))
+
                 apply_xml_properties(obj, obj_node)
                 import_object(obj_node, collection, parent_obj=obj)
                 return
@@ -483,6 +529,17 @@ def import_object(parent_node, collection, parent_obj=None):
         else:
             obj = bpy.data.objects.new(name, data_block)
             collection.objects.link(obj)
+
+        HIERARCHY_MAP[obj] = {
+            'parent': None,
+            'type': None,
+            'bone': None,
+            'inv': None,
+            'world_matrix': None,
+            'transforms': [],
+            'rotation_mode': None,
+        }
+
 
         if parent_obj:
             obj.parent = parent_obj
@@ -498,11 +555,6 @@ def import_object(parent_node, collection, parent_obj=None):
             for m_node in mods_node.findall("Modifier"):
                 mod = obj.modifiers.new(name=m_node.get("name"), type=m_node.get("type"))
                 apply_xml_properties(mod, m_node)
-
-        if obj.type == 'ARMATURE' and obj_node.find("Pose"):
-            DEFERRED_POSES.append((obj, obj_node.find("Pose")))
-        if obj_node.get("active_action"):
-            DEFERRED_ACTIONS.append((obj, obj_node.get("active_action")))
 
         if obj_node.find("NLA"):
             if not obj.animation_data:
@@ -564,6 +616,7 @@ def apply_deferred_actions():
             if not obj.animation_data:
                 obj.animation_data_create()
             obj.animation_data.action = act
+            print(f"settiing obj.animation_data.action = {act}")
 
 def resolve_hierarchy():
     print(f"Resolving hierarchy for {len(HIERARCHY_MAP)} objects...")
@@ -582,6 +635,7 @@ def resolve_hierarchy():
                 if data['bone']:
                     obj.parent_type = 'BONE'
                     obj.parent_bone = data['bone']
+                    print("Parenting", obj.name, "to bone:", obj.parent_bone)
                     if hasattr(obj, "head"):
                         obj.head = data['head']
                     if hasattr(obj, "tail"):
