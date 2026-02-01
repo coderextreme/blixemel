@@ -148,10 +148,9 @@ class BlenderXMLExporter:
         props_container = ET.SubElement(xml_element, "Properties")
 
         # Explicit transform export: rotation_mode, rotation_euler, rotation_quaternion.
-        # location and scale come through the RNA scan below.
-        # matrix_world is intentionally NOT exported — it is derived from the
-        # parent chain + local transforms.  Setting it on import after parenting
-        # double-transforms every parented object.
+        # location and scale arrive via the RNA scan below.
+        # matrix_world is intentionally omitted — it is derived from the parent
+        # chain + local transforms and must not be set on import after parenting.
         rot_mode = getattr(blender_object, "rotation_mode", "XYZ")
         ET.SubElement(props_container, "Prop", {
             "name": "rotation_mode",
@@ -398,16 +397,15 @@ class BlenderXMLExporter:
             if not arm_obj:
                 continue
 
-            # The Object name can differ from the data name.  Other objects
-            # reference this armature via parent = <Object name>, so we must
-            # preserve it separately.
+            # Object name can differ from data name.  Child objects reference
+            # this armature via parent = <Object name>, so preserve it.
             a_node.set("object_name", arm_obj.name)
 
             frame_start = bpy.context.scene.frame_start
             frame_end = bpy.context.scene.frame_end
             export_baked_pose_samples(arm_obj, frame_start, frame_end, a_node)
 
-            # Export bones — head/tail are in armature-local space
+            # Bones — head/tail are armature-local rest-pose positions
             for pbone in arm_obj.pose.bones:
                 ET.SubElement(bones_node, "Bone", {
                     "name": pbone.name,

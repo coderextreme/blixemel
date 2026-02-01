@@ -105,8 +105,8 @@ def apply_xml_properties(blender_obj, xml_node):
         elif name == 'matrix_parent_inverse':
             data['inv'] = val
         elif name == 'matrix_world':
-            # Derived value — skip.  Setting matrix_world after parenting
-            # double-transforms the object.  We rely on local transforms only.
+            # Derived value — skip entirely.  Applying it after parenting
+            # double-transforms the object.
             pass
         elif name == 'rotation_mode':
             data['rotation_mode'] = val
@@ -289,8 +289,7 @@ def reconstruct_material_nodes(mat, mat_node):
 def rebuild_armature_from_xml(armature_data_node):
     from mathutils import Vector
 
-    # Data block name comes from the <ArmatureData name="..."> attribute.
-    # Object name can differ — it was stored separately as object_name.
+    # Data name from <ArmatureData name="...">, Object name stored separately.
     arm_data_name = armature_data_node.get("name", "Armature")
     arm_obj_name  = armature_data_node.get("object_name", arm_data_name)
 
@@ -622,7 +621,7 @@ def resolve_hierarchy():
     print(f"Resolving hierarchy for {len(HIERARCHY_MAP)} objects...")
     valid_objects = [o for o in HIERARCHY_MAP.keys() if isinstance(o, bpy.types.Object)]
 
-    # Parent relationships from properties
+    # Parent relationships
     for obj in valid_objects:
         data = HIERARCHY_MAP[obj]
         if data['parent']:
@@ -640,8 +639,8 @@ def resolve_hierarchy():
             else:
                 print(f"WARNING: Parent '{data['parent']}' not found for {obj.name}")
 
-    # Transforms — always local (location, rotation, scale).
-    # matrix_world is derived and must never be set directly after parenting.
+    # Local transforms only — matrix_world is derived and must not be set
+    # directly, especially after parenting.
     for obj in valid_objects:
         data = HIERARCHY_MAP[obj]
 
@@ -653,6 +652,32 @@ def resolve_hierarchy():
                 setattr(obj, prop_name, val)
             except Exception as e:
                 print(f"Failed to set {prop_name} on {obj.name}: {e}")
+
+def apply_model_rotation():
+    """Rotate the entire imported model 90° around world Y.
+
+    The source .blend (exported via Sketchfab or similar) uses a coordinate
+    convention rotated 90° around Y relative to Blender's default.  This
+    corrects it on import.
+
+    Only parentless Objects that are not CAMERA or LIGHT are rotated.
+    Everything parented to them (meshes, bone-parented objects) cascades
+    automatically.  Bone positions, vertex data, and baked pose data are all
+    in object-local space and are unaffected.
+    """
+    import math
+    rot_y = Matrix.Rotation(math.radians(90), 4, 'Y')
+
+    for obj in bpy.data.objects:
+        if obj.parent is not None:
+            continue                          # only root objects
+        if obj.type in ('CAMERA', 'LIGHT'):
+            continue                          # leave scene lights/cameras alone
+
+        # For a parentless object matrix_world IS matrix_local, so composing
+        # the correction in and letting Blender decompose is safe.
+        obj.matrix_world = rot_y @ obj.matrix_world
+        print(f"  Rotated root object: {obj.name} ({obj.type})")
 
 def resolve_links():
     for obj, prop_name, target_name in DEFERRED_LINKS:
@@ -703,6 +728,7 @@ def importFromXML(filename):
     bpy.context.view_layer.update()
     apply_deferred_poses()
     apply_deferred_actions()
+    apply_model_rotation()
     bpy.context.scene.frame_set(bpy.context.scene.frame_start)
     print("Import Complete.")
 
