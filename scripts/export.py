@@ -9,9 +9,9 @@ from mathutils import Vector
 # BlenderXMLExporter
 # ------------------------------------------------------------
 
-def export_baked_pose_samples(arm_obj, frame_start, frame_end, xml_parent):
+def export_baked_pose_samples(arm_obj, frame_start, frame_end, xml_parent, action_name="BakedAction"):
     scene = bpy.context.scene
-    samples_node = ET.SubElement(xml_parent, "BakedPose")
+    samples_node = ET.SubElement(xml_parent, "BakedPose", {"name": action_name})
 
     for frame in range(frame_start, frame_end + 1):
         scene.frame_set(frame)
@@ -33,46 +33,6 @@ def export_baked_pose_samples(arm_obj, frame_start, frame_end, xml_parent):
             ET.SubElement(pb_node, "Scale", {
                 "v": f"{scl.x},{scl.y},{scl.z}"
             })
-
-def bake_action_from_nla(arm_obj, frame_start, frame_end):
-    scene = bpy.context.scene
-
-    # Ensure animation_data exists
-    if arm_obj.animation_data is None:
-        arm_obj.animation_data_create()
-
-    baked_action = bpy.data.actions.new(name=f"{arm_obj.name}_Baked")
-    print("BAKED TYPE:", type(baked_action), baked_action)
-    print("HAS FCURVES:", hasattr(baked_action, "fcurves"))
-    arm_obj.animation_data.action = baked_action
-
-    fcurves = {}
-
-    def ensure_curve(path, index):
-        key = (path, index)
-        if key not in fcurves:
-            fcurves[key] = baked_action.fcurves.new(data_path=path, index=index)
-        return fcurves[key]
-
-    for frame in range(frame_start, frame_end + 1):
-        scene.frame_set(frame)
-
-        for pbone in arm_obj.pose.bones:
-            base = f'pose.bones["{pbone.name}"]'
-
-            loc = pbone.location
-            for i in range(3):
-                ensure_curve(base + ".location", i).keyframe_points.insert(frame, loc[i])
-
-            rot = pbone.rotation_quaternion
-            for i in range(4):
-                ensure_curve(base + ".rotation_quaternion", i).keyframe_points.insert(frame, rot[i])
-
-            scl = pbone.scale
-            for i in range(3):
-                ensure_curve(base + ".scale", i).keyframe_points.insert(frame, scl[i])
-
-    return baked_action
 
 class BlenderXMLExporter:
     def __init__(self, output_xml_path: str):
@@ -147,10 +107,6 @@ class BlenderXMLExporter:
 
         props_container = ET.SubElement(xml_element, "Properties")
 
-        # Explicit transform export: rotation_mode, rotation_euler, rotation_quaternion.
-        # location and scale arrive via the RNA scan below.
-        # matrix_world is intentionally omitted — it is derived from the parent
-        # chain + local transforms and must not be set on import after parenting.
         rot_mode = getattr(blender_object, "rotation_mode", "XYZ")
         ET.SubElement(props_container, "Prop", {
             "name": "rotation_mode",
@@ -178,7 +134,7 @@ class BlenderXMLExporter:
 
         skip_props = {
             'matrix_basis', 'matrix_local', 'matrix_custom', 'matrix',
-            'matrix_world',
+            'matrix_world', 'use_nodes',
             'is_readonly', 'data'
         }
 
@@ -340,7 +296,6 @@ class BlenderXMLExporter:
             if img_node:
                 shader_node.set("color_image", img_node.image.name)
 
-        # Hybrid: only export full node graph if more than 2 nodes
         if len(tree.nodes) > 2:
             self._export_full_node_graph(mat, mat_node)
 
@@ -392,18 +347,22 @@ class BlenderXMLExporter:
 
             bones_node = ET.SubElement(a_node, "Bones")
 
-            # Find the armature object that uses this armature data
             arm_obj = next((obj for obj in bpy.data.objects if obj.data == arm), None)
             if not arm_obj:
                 continue
 
-            # Object name can differ from data name.  Child objects reference
-            # this armature via parent = <Object name>, so preserve it.
             a_node.set("object_name", arm_obj.name)
 
             frame_start = bpy.context.scene.frame_start
             frame_end = bpy.context.scene.frame_end
-            export_baked_pose_samples(arm_obj, frame_start, frame_end, a_node)
+
+            # Action Name for XML
+            baked_name = f"{arm_obj.name}_Baked"
+            if arm_obj.animation_data and arm_obj.animation_data.action:
+                action_name = arm_obj.animation_data.action.name
+                baked_name = f"{action_name}__Baked"
+
+            export_baked_pose_samples(arm_obj, frame_start, frame_end, a_node, action_name=baked_name)
 
             # Bones — head/tail are armature-local rest-pose positions
             for pbone in arm_obj.pose.bones:
@@ -416,7 +375,7 @@ class BlenderXMLExporter:
 
         # Actions
         actions_node = ET.SubElement(libs_node, "Actions")
-        print(f"number of actions = {bpy.data.actions}")
+        print(f"number of actions = {len(bpy.data.actions)}")
         for action in bpy.data.actions:
             act_node = ET.SubElement(actions_node, "Action")
             self._write_rna_properties(act_node, action)
@@ -433,7 +392,6 @@ class BlenderXMLExporter:
                             "hr": f"{kp.handle_right.x},{kp.handle_right.y}",
                             "interpolation": kp.interpolation
                         })
-
             else:
                 print(f"action {action.name} has no fcurves")
 
@@ -465,7 +423,6 @@ class BlenderXMLExporter:
             s_node.set("frame_end", str(scene.frame_end))
 
             self._export_collection_recursive(scene.collection, s_node)
-            # Also export any root-level objects directly under the scene
             for obj in scene.objects:
                 if not obj.parent:
                     self._export_object_recursive(obj, s_node)
@@ -531,10 +488,6 @@ class BlenderXMLExporter:
             self._export_object_recursive(child, obj_node)
 
 
-# ------------------------------------------------------------
-# Convenience entry point (if run as a script)
-# ------------------------------------------------------------
-
 if __name__ == "__main__":
     bpy.ops.wm.open_mainfile(filepath="sandrunner_bike.blend")
     # bpy.ops.wm.open_mainfile(filepath="gramps_animated_full_1.blend")
@@ -542,6 +495,7 @@ if __name__ == "__main__":
         base = os.path.splitext(bpy.data.filepath)[0]
     else:
         base = "C:/Users/jcarl/blixemel/scripts/sandrunner_bike"
+        # base = "C:/Users/jcarl/blixemel/scripts/gramps_animated_full_1"
     default_xml = base + ".blxml"
 
     exporter = BlenderXMLExporter(default_xml)

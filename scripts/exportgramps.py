@@ -11,7 +11,6 @@ from mathutils import Vector
 
 def export_baked_pose_samples(arm_obj, frame_start, frame_end, xml_parent, action_name="BakedAction"):
     scene = bpy.context.scene
-    # Write the action name to the XML so import can retrieve it
     samples_node = ET.SubElement(xml_parent, "BakedPose", {"name": action_name})
 
     for frame in range(frame_start, frame_end + 1):
@@ -362,7 +361,6 @@ class BlenderXMLExporter:
                 action_name = arm_obj.animation_data.action.name
                 baked_name = f"{action_name}__Baked"
 
-
             export_baked_pose_samples(arm_obj, frame_start, frame_end, a_node, action_name=baked_name)
 
             # Export Visual Pose
@@ -393,6 +391,8 @@ class BlenderXMLExporter:
                             "hr": f"{kp.handle_right.x},{kp.handle_right.y}",
                             "interpolation": kp.interpolation
                         })
+            else:
+                print(f"action {action.name} has no fcurves")
 
     def _export_image_file(self, img, xml_node):
         try:
