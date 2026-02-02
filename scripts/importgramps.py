@@ -105,6 +105,8 @@ def apply_xml_properties(blender_obj, xml_node):
         elif name == 'matrix_parent_inverse':
             data['inv'] = val
         elif name == 'matrix_world':
+            # Derived value — skip entirely.  Applying it after parenting
+            # double-transforms the object.
             pass
         elif name == 'rotation_mode':
             data['rotation_mode'] = val

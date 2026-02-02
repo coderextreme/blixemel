@@ -137,7 +137,7 @@ def rebuild_action_from_baked_pose(arm_obj, baked_node, action_name="BakedFromXM
         print("DEBUG: No frames found in XML.")
         return action
 
-    for frame_node in baked_node.findall("Frame"):
+    for frame_node in frames:
         f = int(frame_node.get("f", "1"))
         scene.frame_set(f)
 
@@ -318,7 +318,6 @@ def rebuild_armature_from_xml(armature_data_node):
     HIERARCHY_MAP[arm_data] = {'object': arm_obj}
 
     bpy.context.scene.collection.objects.link(arm_obj)
-
     bpy.context.view_layer.objects.active = arm_obj
     bpy.ops.object.mode_set(mode='EDIT')
 
