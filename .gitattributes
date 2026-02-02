@@ -7,5 +7,7 @@
 # Binary files should be left untouched
 *.jar           binary
 scripts/gramps_animated_full_1.blxml filter=lfs diff=lfs merge=lfs -text
+scripts/gramps_animated_full_1.blend filter=lfs diff=lfs merge=lfs -binary
+scripts/gramps_animated_full_1.scaled.blend filter=lfs diff=lfs merge=lfs -binary
 scripts/gramps_animated_full_1.blend filter=lfs diff=lfs merge=lfs -text
 scripts/gramps_animated_full_1.scaled.blend filter=lfs diff=lfs merge=lfs -text
