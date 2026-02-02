@@ -138,7 +138,7 @@ def rebuild_action_from_baked_pose(arm_obj, baked_node, action_name="BakedFromXM
         return action
 
     for frame_node in baked_node.findall("Frame"):
-        f = int(frame_node.get("f", "0"))
+        f = int(frame_node.get("f", "1"))
         scene.frame_set(f)
 
         for bone_node in frame_node.findall("Bone"):
