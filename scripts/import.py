@@ -89,7 +89,7 @@ def apply_xml_properties(blender_obj, xml_node):
         val = parse_typed_value(prop.get("value"), prop.get("type"), prop.get("structure_type", ""))
 
         if name in ['name', 'type', 'is_readonly', 'data',
-                    'matrix_basis', 'matrix_local', 'matrix_custom']:
+                    'matrix_basis', 'matrix_local', 'matrix_custom', 'use_nodes']:
             continue
 
         if name == 'parent':
@@ -110,7 +110,8 @@ def apply_xml_properties(blender_obj, xml_node):
             pass
         elif name == 'rotation_mode':
             data['rotation_mode'] = val
-        elif name in ['location', 'rotation_euler', 'rotation_quaternion', 'scale']:
+        elif name in ['location', 'rotation_euler', 'rotation_quaternion', 'scale',
+                      'delta_location', 'delta_rotation_euler', 'delta_scale']:
             data['transforms'].append((name, val))
         elif prop.get("type") == 'POINTER':
             DEFERRED_LINKS.append((blender_obj, name, val))
@@ -123,21 +124,28 @@ def apply_xml_properties(blender_obj, xml_node):
 def rebuild_action_from_baked_pose(arm_obj, baked_node, action_name="BakedFromXML"):
     scene = bpy.context.scene
 
-    # Ensure animation_data exists
     if not arm_obj.animation_data:
         arm_obj.animation_data_create()
 
     action = bpy.data.actions.new(action_name)
     arm_obj.animation_data.action = action
 
+    print(f"DEBUG: Created Action '{action.name}' for {arm_obj.name}")
+
+    frames = baked_node.findall("Frame")
+    if not frames:
+        print("DEBUG: No frames found in XML.")
+        return action
+
     for frame_node in baked_node.findall("Frame"):
-        f = int(float(frame_node.get("f", "0")))
+        f = int(frame_node.get("f", "0"))
         scene.frame_set(f)
 
         for bone_node in frame_node.findall("Bone"):
             name = bone_node.get("name")
             pbone = arm_obj.pose.bones.get(name)
             if not pbone:
+                print(f"MISSING Bone name {name} in XML")
                 continue
 
             loc = [float(x) for x in bone_node.find("Loc").get("v").split(",")]
@@ -149,9 +157,13 @@ def rebuild_action_from_baked_pose(arm_obj, baked_node, action_name="BakedFromXM
             pbone.rotation_quaternion = rot
             pbone.scale = scl
 
-            pbone.keyframe_insert(data_path="location", frame=f)
-            pbone.keyframe_insert(data_path="rotation_quaternion", frame=f)
-            pbone.keyframe_insert(data_path="scale", frame=f)
+            try:
+                pbone.keyframe_insert(data_path="location", frame=f)
+                pbone.keyframe_insert(data_path="rotation_quaternion", frame=f)
+                pbone.keyframe_insert(data_path="scale", frame=f)
+                bpy.context.view_layer.update()
+            except Exception as e:
+                pass
 
     return action
 
@@ -289,13 +301,11 @@ def reconstruct_material_nodes(mat, mat_node):
 def rebuild_armature_from_xml(armature_data_node):
     from mathutils import Vector
 
-    # Data name from <ArmatureData name="...">, Object name stored separately.
     arm_data_name = armature_data_node.get("name", "Armature")
     arm_obj_name  = armature_data_node.get("object_name", arm_data_name)
-
     arm_data = bpy.data.armatures.new(arm_data_name)
     arm_obj  = bpy.data.objects.new(arm_obj_name, arm_data)
-    # Register armature object so resolve_hierarchy can find it
+
     HIERARCHY_MAP[arm_obj] = {
         'parent': None,
         'type': None,
@@ -308,14 +318,12 @@ def rebuild_armature_from_xml(armature_data_node):
 
     bpy.context.scene.collection.objects.link(arm_obj)
 
-    # Make active and enter edit mode
     bpy.context.view_layer.objects.active = arm_obj
     bpy.ops.object.mode_set(mode='EDIT')
 
     bones_node = armature_data_node.find("Bones")
     bone_map = {}
 
-    # First pass: create all edit bones with exported world-space head/tail
     for bone_node in bones_node.iter("Bone"):
         name = bone_node.get("name")
         head = Vector(map(float, bone_node.get("head").split(",")))
@@ -326,7 +334,6 @@ def rebuild_armature_from_xml(armature_data_node):
         eb.tail = tail
         bone_map[name] = eb
 
-    # Second pass: assign parents
     for bone_node in bones_node.iter("Bone"):
         name = bone_node.get("name")
         parent_name = bone_node.get("parent_name")
@@ -334,7 +341,6 @@ def rebuild_armature_from_xml(armature_data_node):
             bone_map[name].parent = bone_map[parent_name]
             print("Parenting bone ", name, "to bone:", parent_name)
 
-    # Exit edit mode
     bpy.ops.object.mode_set(mode='OBJECT')
 
     baked_node = armature_data_node.find("BakedPose")
@@ -445,36 +451,6 @@ def import_libraries(root, xml_dir):
     if libs.find("Armatures"):
         for arm_node in libs.find("Armatures").findall("ArmatureData"):
             rebuild_armature_from_xml(arm_node)
-
-#            arm = bpy.data.armatures.new(arm_node.get("name"))
-#            apply_xml_properties(arm, arm_node)
-#            temp = bpy.data.objects.new("Temp", arm)
-#            bpy.context.collection.objects.link(temp)
-#            bpy.context.view_layer.objects.active = temp
-#            bpy.ops.object.mode_set(mode='EDIT')
-#            if arm_node.find("Bones"):
-#                for b_node in arm_node.find("Bones").findall("Bone"):
-#                    arm.edit_bones.new(b_node.get("name"))
-#                for b_node in arm_node.find("Bones").findall("Bone"):
-#                    eb = arm.edit_bones.get(b_node.get("name"))
-#                    if eb:
-#                        if b_node.get("head"):
-#                            eb.head = Vector([float(x) for x in b_node.get("head").split(',')])
-#                        if b_node.get("tail"):
-#                            eb.tail = Vector([float(x) for x in b_node.get("tail").split(',')])
-#                        if b_node.get("roll"):
-#                            eb.roll = float(b_node.get("roll"))
-#                for b_node in arm_node.find("Bones").findall("Bone"):
-#                    eb = arm.edit_bones.get(b_node.get("name"))
-#                    p_name = b_node.get("parent_name")
-#                    if p_name:
-#                        parent = arm.edit_bones.get(p_name)
-#                        if parent:
-#                            eb.parent = parent
-#                            eb.use_connect = False
-#
-#            bpy.ops.object.mode_set(mode='OBJECT')
-#            bpy.data.objects.remove(temp)
 
     if libs.find("Actions"):
         for act_node in libs.find("Actions").findall("Action"):
@@ -733,6 +709,7 @@ def importFromXML(filename):
     print("Import Complete.")
 
 try:
+    #importFromXML("gramps_animated_full_1.blxml")
     importFromXML("sandrunner_bike.blxml")
 except:
     import traceback

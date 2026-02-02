@@ -120,11 +120,11 @@ def apply_xml_properties(blender_obj, xml_node):
                 pass
 
 def rebuild_action_from_baked_pose(arm_obj, baked_node, action_name="BakedFromXML"):
-    # Ensure animation_data exists
+    scene = bpy.context.scene
+
     if not arm_obj.animation_data:
         arm_obj.animation_data_create()
 
-    # Create new action
     action = bpy.data.actions.new(action_name)
     arm_obj.animation_data.action = action
 
@@ -135,37 +135,32 @@ def rebuild_action_from_baked_pose(arm_obj, baked_node, action_name="BakedFromXM
         print("DEBUG: No frames found in XML.")
         return action
 
-    # Iterate through frames in XML
     for frame_node in frames:
         f = int(frame_node.get("f", "1"))
-        bpy.context.scene.frame_set(f)
+        scene.frame_set(f)
 
         for bone_node in frame_node.findall("Bone"):
             name = bone_node.get("name")
-            if name not in arm_obj.pose.bones:
+            pbone = arm_obj.pose.bones.get(name)
+            if not pbone:
+                print(f"MISSING Bone name {name} in XML")
                 continue
 
-            pbone = arm_obj.pose.bones[name]
-
-            # Parse values
             loc = [float(x) for x in bone_node.find("Loc").get("v").split(",")]
             rot = [float(x) for x in bone_node.find("RotQ").get("v").split(",")]
             scl = [float(x) for x in bone_node.find("Scale").get("v").split(",")]
 
-            # Apply values
             pbone.location = loc
             pbone.rotation_mode = 'QUATERNION'
             pbone.rotation_quaternion = rot
             pbone.scale = scl
 
-            # Insert Keyframes using the high-level API which is safe against API changes
             try:
                 pbone.keyframe_insert(data_path="location", frame=f)
                 pbone.keyframe_insert(data_path="rotation_quaternion", frame=f)
                 pbone.keyframe_insert(data_path="scale", frame=f)
                 bpy.context.view_layer.update()
             except Exception as e:
-                # Log only once per bone/type to avoid spam, or just continue
                 pass
 
     print(f"DEBUG: Finished importing action '{action.name}'")
