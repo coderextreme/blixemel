@@ -364,7 +364,7 @@ class BlenderXMLExporter:
 
             export_baked_pose_samples(arm_obj, frame_start, frame_end, a_node, action_name=baked_name)
 
-            # Bones — head/tail are armature-local rest-pose positions
+            # Bones
             for pbone in arm_obj.pose.bones:
                 ET.SubElement(bones_node, "Bone", {
                     "name": pbone.name,

@@ -165,6 +165,7 @@ def rebuild_action_from_baked_pose(arm_obj, baked_node, action_name="BakedFromXM
             except Exception as e:
                 pass
 
+    print(f"DEBUG: Finished importing action '{action.name}'")
     return action
 
 def rebuild_full_node_graph(mat, nodegraph_node):
@@ -343,9 +344,14 @@ def rebuild_armature_from_xml(armature_data_node):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
+    apply_xml_properties(arm_data, armature_data_node)
+
+    print(f"DEBUG: Armature {arm_obj.name} created at location: {arm_obj.location}")
+
     baked_node = armature_data_node.find("BakedPose")
     if baked_node is not None:
-        rebuild_action_from_baked_pose(arm_obj, baked_node, action_name="Armature|Idle_Object_7")
+        act_name = baked_node.get("name", f"{arm_obj.name}__Baked")
+        rebuild_action_from_baked_pose(arm_obj, baked_node, action_name=act_name)
 
     return arm_obj
 
@@ -490,12 +496,18 @@ def import_object(parent_node, collection, parent_obj=None):
                 if obj.name not in collection.objects:
                     collection.objects.link(obj)
 
+                print(f"DEBUG: Applying properties to armature object {obj.name} from scene")
+                print(f"DEBUG: Before - Location: {obj.location}")
+
                 if obj.type == 'ARMATURE' and obj_node.find("Pose"):
                     DEFERRED_POSES.append((obj, obj_node.find("Pose")))
                 if obj_node.get("active_action"):
                     DEFERRED_ACTIONS.append((obj, obj_node.get("active_action")))
 
                 apply_xml_properties(obj, obj_node)
+
+                print(f"DEBUG: After - Location: {obj.location}")
+
                 import_object(obj_node, collection, parent_obj=obj)
                 continue
 
@@ -583,6 +595,23 @@ def apply_deferred_poses():
             if pbone:
                 apply_xml_properties(pbone, pb_node)
 
+                # FIXED: Force application of buffered transforms for Pose Bones
+                if pbone in HIERARCHY_MAP:
+                    data = HIERARCHY_MAP[pbone]
+                    # Set rotation mode first to ensure rotation values apply correctly
+                    if data['rotation_mode']:
+                        pbone.rotation_mode = data['rotation_mode']
+
+                    for prop_name, val in data['transforms']:
+                        try:
+                            setattr(pbone, prop_name, val)
+                            # print(f"  Applied {prop_name}={val} to {pbone.name}")
+                        except Exception as e:
+                            print(f"  Error applying {prop_name} to {pbone.name}: {e}")
+
+                    # Clean up
+                    del HIERARCHY_MAP[pbone]
+
 def apply_deferred_actions():
     print(f"Applying {len(DEFERRED_ACTIONS)} deferred actions...")
     for obj, act_name in DEFERRED_ACTIONS:
@@ -626,6 +655,8 @@ def resolve_hierarchy():
         for prop_name, val in data['transforms']:
             try:
                 setattr(obj, prop_name, val)
+                if obj.type == 'ARMATURE':
+                    print(f"DEBUG: Setting {prop_name} on armature {obj.name} to {val}")
             except Exception as e:
                 print(f"Failed to set {prop_name} on {obj.name}: {e}")
 

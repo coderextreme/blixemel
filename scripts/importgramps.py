@@ -302,10 +302,17 @@ def rebuild_armature_from_xml(armature_data_node):
 
     arm_data_name = armature_data_node.get("name", "Armature")
     arm_obj_name  = armature_data_node.get("object_name", arm_data_name)
-
     arm_data = bpy.data.armatures.new(arm_data_name)
     arm_obj  = bpy.data.objects.new(arm_obj_name, arm_data)
 
+    HIERARCHY_MAP[arm_obj] = {
+        'parent': None,
+        'type': None,
+        'bone': None,
+        'inv': None,
+        'transforms': [],
+        'rotation_mode': None,
+    }
     HIERARCHY_MAP[arm_data] = {'object': arm_obj}
 
     bpy.context.scene.collection.objects.link(arm_obj)
@@ -330,6 +337,7 @@ def rebuild_armature_from_xml(armature_data_node):
         parent_name = bone_node.get("parent_name")
         if parent_name and parent_name in bone_map:
             bone_map[name].parent = bone_map[parent_name]
+            print("Parenting bone ", name, "to bone:", parent_name)
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -339,8 +347,7 @@ def rebuild_armature_from_xml(armature_data_node):
 
     baked_node = armature_data_node.find("BakedPose")
     if baked_node is not None:
-        # Retrieve the action name from XML, fallback to default only if missing
-        act_name = baked_node.get("name", f"{arm_obj.name}_Baked")
+        act_name = baked_node.get("name", f"{arm_obj.name}__Baked")
         rebuild_action_from_baked_pose(arm_obj, baked_node, action_name=act_name)
 
     return arm_obj
