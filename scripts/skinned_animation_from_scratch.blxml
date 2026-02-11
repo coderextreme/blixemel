@@ -1,7 +1,37 @@
 <?xml version='1.0' encoding='utf-8'?>
 <BlenderData source="C:\Users\jcarl\blixemel\scripts\skinned_animation_from_scratch.blend">
   <Libraries>
-    <Images />
+    <Images>
+      <Image name="Render Result" type="RENDER_RESULT">
+        <Properties>
+          <Prop name="rotation_mode" type="STRING" value="XYZ" />
+          <Prop name="name" type="STRING" value="Render Result" />
+          <Prop name="use_fake_user" type="BOOLEAN" value="False" />
+          <Prop name="use_extra_user" type="BOOLEAN" value="True" />
+          <Prop name="is_runtime_data" type="BOOLEAN" value="False" />
+          <Prop name="tag" type="BOOLEAN" value="False" />
+          <Prop name="filepath" type="STRING" value="" />
+          <Prop name="filepath_raw" type="STRING" value="" />
+          <Prop name="file_format" type="ENUM" value="TARGA" />
+          <Prop name="source" type="ENUM" value="VIEWER" />
+          <Prop name="use_view_as_render" type="BOOLEAN" value="True" />
+          <Prop name="use_deinterlace" type="BOOLEAN" value="False" />
+          <Prop name="use_multiview" type="BOOLEAN" value="False" />
+          <Prop name="generated_type" type="ENUM" value="UV_GRID" />
+          <Prop name="generated_width" type="INT" value="1024" />
+          <Prop name="generated_height" type="INT" value="1024" />
+          <Prop name="use_generated_float" type="BOOLEAN" value="False" />
+          <Prop name="generated_color" type="FLOAT" value="&lt;bpy_float[4], Image.generated_color&gt;" />
+          <Prop name="display_aspect" type="FLOAT" value="1.0,1.0" structure_type="VECTOR" />
+          <Prop name="resolution" type="FLOAT" value="0.0,0.0" structure_type="VECTOR" />
+          <Prop name="pixels" type="FLOAT" value="&lt;bpy_float[0], Image.pixels&gt;" />
+          <Prop name="alpha_mode" type="ENUM" value="STRAIGHT" />
+          <Prop name="use_half_precision" type="BOOLEAN" value="True" />
+          <Prop name="seam_margin" type="INT" value="8" />
+          <Prop name="views_format" type="ENUM" value="INDIVIDUAL" />
+        </Properties>
+      </Image>
+    </Images>
     <Meshes>
       <Mesh name="Cube">
         <Properties>
@@ -192,152 +222,451 @@
             <V co="-0.5,0.0,-2.351047992706299" />
           </Vertices>
           <Polygons count="145">
-            <P i="0,56,55,54,4,11,10" m="0" />
-            <P i="104,44,6,35" m="0" />
-            <P i="95,53,4,39" m="0" />
-            <P i="86,57,3,50" m="0" />
-            <P i="77,47,2,36" m="0" />
-            <P i="68,56,0,30" m="0" />
-            <P i="11,9,13,15" m="0" />
-            <P i="6,44,43,42,2,8,9" m="0" />
-            <P i="4,53,52,51,6,9,11" m="0" />
-            <P i="2,47,46,45,0,10,8" m="0" />
-            <P i="14,15,19,18" m="0" />
-            <P i="9,8,12,13" m="0" />
-            <P i="10,11,15,14" m="0" />
-            <P i="8,10,14,12" m="0" />
-            <P i="19,17,21,23" m="0" />
-            <P i="12,14,18,16" m="0" />
-            <P i="15,13,17,19" m="0" />
-            <P i="13,12,16,17" m="0" />
-            <P i="22,23,21,20" m="0" />
-            <P i="17,16,20,21" m="0" />
-            <P i="18,19,23,22" m="0" />
-            <P i="16,18,22,20" m="0" />
-            <P i="27,62,32,1" m="0" />
-            <P i="62,65,31,32" m="0" />
-            <P i="65,68,30,31" m="0" />
-            <P i="5,41,60,29" m="0" />
-            <P i="29,60,61,28" m="0" />
-            <P i="28,61,62,27" m="0" />
-            <P i="41,40,63,60" m="0" />
-            <P i="60,63,64,61" m="0" />
-            <P i="61,64,65,62" m="0" />
-            <P i="40,39,66,63" m="0" />
-            <P i="63,66,67,64" m="0" />
-            <P i="64,67,68,65" m="0" />
-            <P i="39,4,54,66" m="0" />
-            <P i="66,54,55,67" m="0" />
-            <P i="67,55,56,68" m="0" />
-            <P i="57,71,38,3" m="0" />
-            <P i="71,74,37,38" m="0" />
-            <P i="74,77,36,37" m="0" />
-            <P i="1,32,69,59" m="0" />
-            <P i="59,69,70,58" m="0" />
-            <P i="58,70,71,57" m="0" />
-            <P i="32,31,72,69" m="0" />
-            <P i="69,72,73,70" m="0" />
-            <P i="70,73,74,71" m="0" />
-            <P i="31,30,75,72" m="0" />
-            <P i="73,72,117,118" m="0" />
-            <P i="75,76,121,120" m="0" />
-            <P i="30,0,45,75" m="0" />
-            <P i="75,45,46,76" m="0" />
-            <P i="76,46,47,77" m="0" />
-            <P i="26,80,48,7" m="0" />
-            <P i="80,83,49,48" m="0" />
-            <P i="83,86,50,49" m="0" />
-            <P i="5,29,78,24" m="0" />
-            <P i="148,147,132,133" m="0" />
-            <P i="146,145,139,140" m="0" />
-            <P i="29,28,81,78" m="0" />
-            <P i="78,81,82,79" m="0" />
-            <P i="79,82,83,80" m="0" />
-            <P i="28,27,84,81" m="0" />
-            <P i="81,84,85,82" m="0" />
-            <P i="82,85,86,83" m="0" />
-            <P i="27,1,59,84" m="0" />
-            <P i="144,143,134,138" m="0" />
-            <P i="141,142,131,137" m="0" />
-            <P i="24,89,41,5" m="0" />
-            <P i="89,92,40,41" m="0" />
-            <P i="92,95,39,40" m="0" />
-            <P i="7,33,87,26" m="0" />
-            <P i="26,87,88,25" m="0" />
-            <P i="25,88,89,24" m="0" />
-            <P i="33,34,90,87" m="0" />
-            <P i="87,90,91,88" m="0" />
-            <P i="88,91,92,89" m="0" />
-            <P i="34,35,93,90" m="0" />
-            <P i="94,95,110,109" m="0" />
-            <P i="91,90,105,106" m="0" />
-            <P i="35,6,51,93" m="0" />
-            <P i="93,51,52,94" m="0" />
-            <P i="94,52,53,95" m="0" />
-            <P i="48,98,33,7" m="0" />
-            <P i="98,101,34,33" m="0" />
-            <P i="101,104,35,34" m="0" />
-            <P i="3,38,96,50" m="0" />
-            <P i="50,96,97,49" m="0" />
-            <P i="49,97,98,48" m="0" />
-            <P i="38,37,99,96" m="0" />
-            <P i="96,99,100,97" m="0" />
-            <P i="97,100,101,98" m="0" />
-            <P i="37,36,102,99" m="0" />
-            <P i="99,102,103,100" m="0" />
-            <P i="100,103,104,101" m="0" />
-            <P i="36,2,42,102" m="0" />
-            <P i="102,42,43,103" m="0" />
-            <P i="103,43,44,104" m="0" />
-            <P i="108,109,115,114" m="0" />
-            <P i="105,108,114,111" m="0" />
-            <P i="95,92,107,110" m="0" />
-            <P i="90,93,108,105" m="0" />
-            <P i="92,91,106,107" m="0" />
-            <P i="93,94,109,108" m="0" />
-            <P i="111,114,115,112" m="0" />
-            <P i="112,115,116,113" m="0" />
-            <P i="106,105,111,112" m="0" />
-            <P i="109,110,116,115" m="0" />
-            <P i="107,106,112,113" m="0" />
-            <P i="110,107,113,116" m="0" />
-            <P i="118,117,123,124" m="0" />
-            <P i="120,121,127,126" m="0" />
-            <P i="76,77,122,121" m="0" />
-            <P i="77,74,119,122" m="0" />
-            <P i="72,75,120,117" m="0" />
-            <P i="74,73,118,119" m="0" />
-            <P i="123,126,127,124" m="0" />
-            <P i="124,127,128,125" m="0" />
-            <P i="121,122,128,127" m="0" />
-            <P i="119,118,124,125" m="0" />
-            <P i="122,119,125,128" m="0" />
-            <P i="117,120,126,123" m="0" />
-            <P i="129,135,136,130" m="0" />
-            <P i="130,136,137,131" m="0" />
-            <P i="138,134,133,139" m="0" />
-            <P i="139,133,132,140" m="0" />
-            <P i="150,149,135,129" m="0" />
-            <P i="151,150,129,130" m="0" />
-            <P i="149,152,136,135" m="0" />
-            <P i="143,148,133,134" m="0" />
-            <P i="147,146,140,132" m="0" />
-            <P i="152,141,137,136" m="0" />
-            <P i="142,151,130,131" m="0" />
-            <P i="145,144,138,139" m="0" />
-            <P i="85,84,144,145" m="0" />
-            <P i="26,25,151,142" m="0" />
-            <P i="79,80,141,152" m="0" />
-            <P i="57,86,146,147" m="0" />
-            <P i="59,58,148,143" m="0" />
-            <P i="78,79,152,149" m="0" />
-            <P i="25,24,150,151" m="0" />
-            <P i="24,78,149,150" m="0" />
-            <P i="80,26,142,141" m="0" />
-            <P i="84,59,143,144" m="0" />
-            <P i="86,85,145,146" m="0" />
-            <P i="58,57,147,148" m="0" />
+            <P i="0,56,55,54,4,11,10" m="0" smooth="True" />
+            <P i="104,44,6,35" m="0" smooth="True" />
+            <P i="95,53,4,39" m="0" smooth="True" />
+            <P i="86,57,3,50" m="0" smooth="True" />
+            <P i="77,47,2,36" m="0" smooth="True" />
+            <P i="68,56,0,30" m="0" smooth="True" />
+            <P i="11,9,13,15" m="0" smooth="True" />
+            <P i="6,44,43,42,2,8,9" m="0" smooth="True" />
+            <P i="4,53,52,51,6,9,11" m="0" smooth="True" />
+            <P i="2,47,46,45,0,10,8" m="0" smooth="True" />
+            <P i="14,15,19,18" m="0" smooth="True" />
+            <P i="9,8,12,13" m="0" smooth="True" />
+            <P i="10,11,15,14" m="0" smooth="True" />
+            <P i="8,10,14,12" m="0" smooth="True" />
+            <P i="19,17,21,23" m="0" smooth="True" />
+            <P i="12,14,18,16" m="0" smooth="True" />
+            <P i="15,13,17,19" m="0" smooth="True" />
+            <P i="13,12,16,17" m="0" smooth="True" />
+            <P i="22,23,21,20" m="0" smooth="True" />
+            <P i="17,16,20,21" m="0" smooth="True" />
+            <P i="18,19,23,22" m="0" smooth="True" />
+            <P i="16,18,22,20" m="0" smooth="True" />
+            <P i="27,62,32,1" m="0" smooth="True" />
+            <P i="62,65,31,32" m="0" smooth="True" />
+            <P i="65,68,30,31" m="0" smooth="True" />
+            <P i="5,41,60,29" m="0" smooth="True" />
+            <P i="29,60,61,28" m="0" smooth="True" />
+            <P i="28,61,62,27" m="0" smooth="True" />
+            <P i="41,40,63,60" m="0" smooth="True" />
+            <P i="60,63,64,61" m="0" smooth="True" />
+            <P i="61,64,65,62" m="0" smooth="True" />
+            <P i="40,39,66,63" m="0" smooth="True" />
+            <P i="63,66,67,64" m="0" smooth="True" />
+            <P i="64,67,68,65" m="0" smooth="True" />
+            <P i="39,4,54,66" m="0" smooth="True" />
+            <P i="66,54,55,67" m="0" smooth="True" />
+            <P i="67,55,56,68" m="0" smooth="True" />
+            <P i="57,71,38,3" m="0" smooth="True" />
+            <P i="71,74,37,38" m="0" smooth="True" />
+            <P i="74,77,36,37" m="0" smooth="True" />
+            <P i="1,32,69,59" m="0" smooth="True" />
+            <P i="59,69,70,58" m="0" smooth="True" />
+            <P i="58,70,71,57" m="0" smooth="True" />
+            <P i="32,31,72,69" m="0" smooth="True" />
+            <P i="69,72,73,70" m="0" smooth="True" />
+            <P i="70,73,74,71" m="0" smooth="True" />
+            <P i="31,30,75,72" m="0" smooth="True" />
+            <P i="73,72,117,118" m="0" smooth="True" />
+            <P i="75,76,121,120" m="0" smooth="True" />
+            <P i="30,0,45,75" m="0" smooth="True" />
+            <P i="75,45,46,76" m="0" smooth="True" />
+            <P i="76,46,47,77" m="0" smooth="True" />
+            <P i="26,80,48,7" m="0" smooth="True" />
+            <P i="80,83,49,48" m="0" smooth="True" />
+            <P i="83,86,50,49" m="0" smooth="True" />
+            <P i="5,29,78,24" m="0" smooth="True" />
+            <P i="148,147,132,133" m="0" smooth="True" />
+            <P i="146,145,139,140" m="0" smooth="True" />
+            <P i="29,28,81,78" m="0" smooth="True" />
+            <P i="78,81,82,79" m="0" smooth="True" />
+            <P i="79,82,83,80" m="0" smooth="True" />
+            <P i="28,27,84,81" m="0" smooth="True" />
+            <P i="81,84,85,82" m="0" smooth="True" />
+            <P i="82,85,86,83" m="0" smooth="True" />
+            <P i="27,1,59,84" m="0" smooth="True" />
+            <P i="144,143,134,138" m="0" smooth="True" />
+            <P i="141,142,131,137" m="0" smooth="True" />
+            <P i="24,89,41,5" m="0" smooth="True" />
+            <P i="89,92,40,41" m="0" smooth="True" />
+            <P i="92,95,39,40" m="0" smooth="True" />
+            <P i="7,33,87,26" m="0" smooth="True" />
+            <P i="26,87,88,25" m="0" smooth="True" />
+            <P i="25,88,89,24" m="0" smooth="True" />
+            <P i="33,34,90,87" m="0" smooth="True" />
+            <P i="87,90,91,88" m="0" smooth="True" />
+            <P i="88,91,92,89" m="0" smooth="True" />
+            <P i="34,35,93,90" m="0" smooth="True" />
+            <P i="94,95,110,109" m="0" smooth="True" />
+            <P i="91,90,105,106" m="0" smooth="True" />
+            <P i="35,6,51,93" m="0" smooth="True" />
+            <P i="93,51,52,94" m="0" smooth="True" />
+            <P i="94,52,53,95" m="0" smooth="True" />
+            <P i="48,98,33,7" m="0" smooth="True" />
+            <P i="98,101,34,33" m="0" smooth="True" />
+            <P i="101,104,35,34" m="0" smooth="True" />
+            <P i="3,38,96,50" m="0" smooth="True" />
+            <P i="50,96,97,49" m="0" smooth="True" />
+            <P i="49,97,98,48" m="0" smooth="True" />
+            <P i="38,37,99,96" m="0" smooth="True" />
+            <P i="96,99,100,97" m="0" smooth="True" />
+            <P i="97,100,101,98" m="0" smooth="True" />
+            <P i="37,36,102,99" m="0" smooth="True" />
+            <P i="99,102,103,100" m="0" smooth="True" />
+            <P i="100,103,104,101" m="0" smooth="True" />
+            <P i="36,2,42,102" m="0" smooth="True" />
+            <P i="102,42,43,103" m="0" smooth="True" />
+            <P i="103,43,44,104" m="0" smooth="True" />
+            <P i="108,109,115,114" m="0" smooth="True" />
+            <P i="105,108,114,111" m="0" smooth="True" />
+            <P i="95,92,107,110" m="0" smooth="True" />
+            <P i="90,93,108,105" m="0" smooth="True" />
+            <P i="92,91,106,107" m="0" smooth="True" />
+            <P i="93,94,109,108" m="0" smooth="True" />
+            <P i="111,114,115,112" m="0" smooth="True" />
+            <P i="112,115,116,113" m="0" smooth="True" />
+            <P i="106,105,111,112" m="0" smooth="True" />
+            <P i="109,110,116,115" m="0" smooth="True" />
+            <P i="107,106,112,113" m="0" smooth="True" />
+            <P i="110,107,113,116" m="0" smooth="True" />
+            <P i="118,117,123,124" m="0" smooth="True" />
+            <P i="120,121,127,126" m="0" smooth="True" />
+            <P i="76,77,122,121" m="0" smooth="True" />
+            <P i="77,74,119,122" m="0" smooth="True" />
+            <P i="72,75,120,117" m="0" smooth="True" />
+            <P i="74,73,118,119" m="0" smooth="True" />
+            <P i="123,126,127,124" m="0" smooth="True" />
+            <P i="124,127,128,125" m="0" smooth="True" />
+            <P i="121,122,128,127" m="0" smooth="True" />
+            <P i="119,118,124,125" m="0" smooth="True" />
+            <P i="122,119,125,128" m="0" smooth="True" />
+            <P i="117,120,126,123" m="0" smooth="True" />
+            <P i="129,135,136,130" m="0" smooth="True" />
+            <P i="130,136,137,131" m="0" smooth="True" />
+            <P i="138,134,133,139" m="0" smooth="True" />
+            <P i="139,133,132,140" m="0" smooth="True" />
+            <P i="150,149,135,129" m="0" smooth="True" />
+            <P i="151,150,129,130" m="0" smooth="True" />
+            <P i="149,152,136,135" m="0" smooth="True" />
+            <P i="143,148,133,134" m="0" smooth="True" />
+            <P i="147,146,140,132" m="0" smooth="True" />
+            <P i="152,141,137,136" m="0" smooth="True" />
+            <P i="142,151,130,131" m="0" smooth="True" />
+            <P i="145,144,138,139" m="0" smooth="True" />
+            <P i="85,84,144,145" m="0" smooth="True" />
+            <P i="26,25,151,142" m="0" smooth="True" />
+            <P i="79,80,141,152" m="0" smooth="True" />
+            <P i="57,86,146,147" m="0" smooth="True" />
+            <P i="59,58,148,143" m="0" smooth="True" />
+            <P i="78,79,152,149" m="0" smooth="True" />
+            <P i="25,24,150,151" m="0" smooth="True" />
+            <P i="24,78,149,150" m="0" smooth="True" />
+            <P i="80,26,142,141" m="0" smooth="True" />
+            <P i="84,59,143,144" m="0" smooth="True" />
+            <P i="86,85,145,146" m="0" smooth="True" />
+            <P i="58,57,147,148" m="0" smooth="True" />
           </Polygons>
+          <Shading use_auto_smooth="False" auto_smooth_angle="0.523599" has_custom_normals="False" />
+          <Edges>
+            <E v="26,7" sharp="False" />
+            <E v="29,5" sharp="False" />
+            <E v="32,1" sharp="False" />
+            <E v="35,6" sharp="False" />
+            <E v="38,3" sharp="False" />
+            <E v="41,5" sharp="False" />
+            <E v="44,6" sharp="False" />
+            <E v="47,2" sharp="False" />
+            <E v="50,3" sharp="False" />
+            <E v="53,4" sharp="False" />
+            <E v="56,0" sharp="False" />
+            <E v="59,1" sharp="False" />
+            <E v="8,9" sharp="False" />
+            <E v="10,8" sharp="False" />
+            <E v="9,11" sharp="False" />
+            <E v="11,10" sharp="False" />
+            <E v="4,11" sharp="False" />
+            <E v="10,0" sharp="False" />
+            <E v="2,8" sharp="False" />
+            <E v="9,6" sharp="False" />
+            <E v="12,13" sharp="False" />
+            <E v="14,12" sharp="False" />
+            <E v="13,15" sharp="False" />
+            <E v="15,14" sharp="False" />
+            <E v="9,13" sharp="False" />
+            <E v="15,11" sharp="False" />
+            <E v="8,12" sharp="False" />
+            <E v="14,10" sharp="False" />
+            <E v="16,17" sharp="False" />
+            <E v="18,16" sharp="False" />
+            <E v="17,19" sharp="False" />
+            <E v="19,18" sharp="False" />
+            <E v="15,19" sharp="False" />
+            <E v="18,14" sharp="False" />
+            <E v="16,12" sharp="False" />
+            <E v="13,17" sharp="False" />
+            <E v="20,21" sharp="False" />
+            <E v="22,20" sharp="False" />
+            <E v="21,23" sharp="False" />
+            <E v="23,22" sharp="False" />
+            <E v="17,21" sharp="False" />
+            <E v="23,19" sharp="False" />
+            <E v="16,20" sharp="False" />
+            <E v="22,18" sharp="False" />
+            <E v="5,24" sharp="False" />
+            <E v="24,25" sharp="False" />
+            <E v="25,26" sharp="False" />
+            <E v="1,27" sharp="False" />
+            <E v="27,28" sharp="False" />
+            <E v="28,29" sharp="False" />
+            <E v="0,30" sharp="False" />
+            <E v="30,31" sharp="False" />
+            <E v="31,32" sharp="False" />
+            <E v="7,33" sharp="False" />
+            <E v="33,34" sharp="False" />
+            <E v="34,35" sharp="False" />
+            <E v="2,36" sharp="False" />
+            <E v="36,37" sharp="False" />
+            <E v="37,38" sharp="False" />
+            <E v="4,39" sharp="False" />
+            <E v="39,40" sharp="False" />
+            <E v="40,41" sharp="False" />
+            <E v="2,42" sharp="False" />
+            <E v="42,43" sharp="False" />
+            <E v="43,44" sharp="False" />
+            <E v="0,45" sharp="False" />
+            <E v="45,46" sharp="False" />
+            <E v="46,47" sharp="False" />
+            <E v="7,48" sharp="False" />
+            <E v="48,49" sharp="False" />
+            <E v="49,50" sharp="False" />
+            <E v="6,51" sharp="False" />
+            <E v="51,52" sharp="False" />
+            <E v="52,53" sharp="False" />
+            <E v="4,54" sharp="False" />
+            <E v="54,55" sharp="False" />
+            <E v="55,56" sharp="False" />
+            <E v="3,57" sharp="False" />
+            <E v="57,58" sharp="False" />
+            <E v="58,59" sharp="False" />
+            <E v="62,32" sharp="False" />
+            <E v="41,60" sharp="False" />
+            <E v="60,61" sharp="False" />
+            <E v="61,62" sharp="False" />
+            <E v="65,31" sharp="False" />
+            <E v="40,63" sharp="False" />
+            <E v="63,64" sharp="False" />
+            <E v="64,65" sharp="False" />
+            <E v="68,30" sharp="False" />
+            <E v="39,66" sharp="False" />
+            <E v="66,67" sharp="False" />
+            <E v="67,68" sharp="False" />
+            <E v="60,29" sharp="False" />
+            <E v="61,28" sharp="False" />
+            <E v="62,27" sharp="False" />
+            <E v="63,60" sharp="False" />
+            <E v="64,61" sharp="False" />
+            <E v="65,62" sharp="False" />
+            <E v="66,63" sharp="False" />
+            <E v="67,64" sharp="False" />
+            <E v="68,65" sharp="False" />
+            <E v="54,66" sharp="False" />
+            <E v="55,67" sharp="False" />
+            <E v="56,68" sharp="False" />
+            <E v="71,38" sharp="False" />
+            <E v="32,69" sharp="False" />
+            <E v="69,70" sharp="False" />
+            <E v="70,71" sharp="False" />
+            <E v="74,37" sharp="False" />
+            <E v="31,72" sharp="False" />
+            <E v="72,73" sharp="False" />
+            <E v="73,74" sharp="False" />
+            <E v="77,36" sharp="False" />
+            <E v="30,75" sharp="False" />
+            <E v="75,76" sharp="False" />
+            <E v="76,77" sharp="False" />
+            <E v="69,59" sharp="False" />
+            <E v="70,58" sharp="False" />
+            <E v="71,57" sharp="False" />
+            <E v="72,69" sharp="False" />
+            <E v="73,70" sharp="False" />
+            <E v="74,71" sharp="False" />
+            <E v="75,72" sharp="False" />
+            <E v="76,121" sharp="False" />
+            <E v="77,74" sharp="False" />
+            <E v="45,75" sharp="False" />
+            <E v="46,76" sharp="False" />
+            <E v="47,77" sharp="False" />
+            <E v="80,48" sharp="False" />
+            <E v="29,78" sharp="False" />
+            <E v="78,79" sharp="False" />
+            <E v="79,80" sharp="False" />
+            <E v="83,49" sharp="False" />
+            <E v="28,81" sharp="False" />
+            <E v="81,82" sharp="False" />
+            <E v="82,83" sharp="False" />
+            <E v="86,50" sharp="False" />
+            <E v="27,84" sharp="False" />
+            <E v="84,85" sharp="False" />
+            <E v="85,86" sharp="False" />
+            <E v="78,24" sharp="False" />
+            <E v="141,80" sharp="False" />
+            <E v="80,26" sharp="False" />
+            <E v="81,78" sharp="False" />
+            <E v="82,79" sharp="False" />
+            <E v="83,80" sharp="False" />
+            <E v="84,81" sharp="False" />
+            <E v="85,82" sharp="False" />
+            <E v="86,83" sharp="False" />
+            <E v="59,84" sharp="False" />
+            <E v="142,131" sharp="False" />
+            <E v="57,86" sharp="False" />
+            <E v="89,41" sharp="False" />
+            <E v="33,87" sharp="False" />
+            <E v="87,88" sharp="False" />
+            <E v="88,89" sharp="False" />
+            <E v="92,40" sharp="False" />
+            <E v="34,90" sharp="False" />
+            <E v="90,91" sharp="False" />
+            <E v="91,92" sharp="False" />
+            <E v="95,39" sharp="False" />
+            <E v="35,93" sharp="False" />
+            <E v="93,94" sharp="False" />
+            <E v="94,95" sharp="False" />
+            <E v="87,26" sharp="False" />
+            <E v="88,25" sharp="False" />
+            <E v="89,24" sharp="False" />
+            <E v="90,87" sharp="False" />
+            <E v="91,88" sharp="False" />
+            <E v="92,89" sharp="False" />
+            <E v="93,90" sharp="False" />
+            <E v="90,105" sharp="False" />
+            <E v="95,92" sharp="False" />
+            <E v="51,93" sharp="False" />
+            <E v="52,94" sharp="False" />
+            <E v="53,95" sharp="False" />
+            <E v="98,33" sharp="False" />
+            <E v="38,96" sharp="False" />
+            <E v="96,97" sharp="False" />
+            <E v="97,98" sharp="False" />
+            <E v="101,34" sharp="False" />
+            <E v="37,99" sharp="False" />
+            <E v="99,100" sharp="False" />
+            <E v="100,101" sharp="False" />
+            <E v="104,35" sharp="False" />
+            <E v="36,102" sharp="False" />
+            <E v="102,103" sharp="False" />
+            <E v="103,104" sharp="False" />
+            <E v="96,50" sharp="False" />
+            <E v="97,49" sharp="False" />
+            <E v="98,48" sharp="False" />
+            <E v="99,96" sharp="False" />
+            <E v="100,97" sharp="False" />
+            <E v="101,98" sharp="False" />
+            <E v="102,99" sharp="False" />
+            <E v="103,100" sharp="False" />
+            <E v="104,101" sharp="False" />
+            <E v="42,102" sharp="False" />
+            <E v="43,103" sharp="False" />
+            <E v="44,104" sharp="False" />
+            <E v="105,106" sharp="False" />
+            <E v="106,107" sharp="False" />
+            <E v="108,109" sharp="False" />
+            <E v="109,110" sharp="False" />
+            <E v="108,105" sharp="False" />
+            <E v="108,114" sharp="False" />
+            <E v="110,107" sharp="False" />
+            <E v="106,91" sharp="False" />
+            <E v="95,110" sharp="False" />
+            <E v="109,94" sharp="False" />
+            <E v="92,107" sharp="False" />
+            <E v="93,108" sharp="False" />
+            <E v="111,112" sharp="False" />
+            <E v="112,113" sharp="False" />
+            <E v="114,115" sharp="False" />
+            <E v="115,116" sharp="False" />
+            <E v="114,111" sharp="False" />
+            <E v="115,112" sharp="False" />
+            <E v="116,113" sharp="False" />
+            <E v="111,105" sharp="False" />
+            <E v="109,115" sharp="False" />
+            <E v="112,106" sharp="False" />
+            <E v="110,116" sharp="False" />
+            <E v="113,107" sharp="False" />
+            <E v="117,118" sharp="False" />
+            <E v="118,119" sharp="False" />
+            <E v="120,121" sharp="False" />
+            <E v="121,122" sharp="False" />
+            <E v="120,117" sharp="False" />
+            <E v="121,127" sharp="False" />
+            <E v="122,119" sharp="False" />
+            <E v="120,75" sharp="False" />
+            <E v="72,117" sharp="False" />
+            <E v="118,73" sharp="False" />
+            <E v="77,122" sharp="False" />
+            <E v="74,119" sharp="False" />
+            <E v="123,124" sharp="False" />
+            <E v="124,125" sharp="False" />
+            <E v="126,127" sharp="False" />
+            <E v="127,128" sharp="False" />
+            <E v="126,123" sharp="False" />
+            <E v="127,124" sharp="False" />
+            <E v="128,125" sharp="False" />
+            <E v="126,120" sharp="False" />
+            <E v="117,123" sharp="False" />
+            <E v="124,118" sharp="False" />
+            <E v="122,128" sharp="False" />
+            <E v="125,119" sharp="False" />
+            <E v="129,130" sharp="False" />
+            <E v="130,131" sharp="False" />
+            <E v="132,133" sharp="False" />
+            <E v="133,134" sharp="False" />
+            <E v="135,136" sharp="False" />
+            <E v="136,137" sharp="False" />
+            <E v="138,139" sharp="False" />
+            <E v="139,140" sharp="False" />
+            <E v="135,129" sharp="False" />
+            <E v="136,130" sharp="False" />
+            <E v="137,131" sharp="False" />
+            <E v="134,138" sharp="False" />
+            <E v="133,139" sharp="False" />
+            <E v="132,140" sharp="False" />
+            <E v="143,134" sharp="False" />
+            <E v="144,84" sharp="False" />
+            <E v="145,139" sharp="False" />
+            <E v="146,86" sharp="False" />
+            <E v="147,132" sharp="False" />
+            <E v="148,58" sharp="False" />
+            <E v="149,135" sharp="False" />
+            <E v="150,24" sharp="False" />
+            <E v="151,25" sharp="False" />
+            <E v="152,136" sharp="False" />
+            <E v="137,141" sharp="False" />
+            <E v="26,142" sharp="False" />
+            <E v="59,143" sharp="False" />
+            <E v="138,144" sharp="False" />
+            <E v="85,145" sharp="False" />
+            <E v="140,146" sharp="False" />
+            <E v="57,147" sharp="False" />
+            <E v="133,148" sharp="False" />
+            <E v="78,149" sharp="False" />
+            <E v="129,150" sharp="False" />
+            <E v="130,151" sharp="False" />
+            <E v="79,152" sharp="False" />
+            <E v="144,145" sharp="False" />
+            <E v="151,142" sharp="False" />
+            <E v="141,152" sharp="False" />
+            <E v="146,147" sharp="False" />
+            <E v="148,143" sharp="False" />
+            <E v="152,149" sharp="False" />
+            <E v="150,151" sharp="False" />
+            <E v="149,150" sharp="False" />
+            <E v="142,141" sharp="False" />
+            <E v="143,144" sharp="False" />
+            <E v="145,146" sharp="False" />
+            <E v="147,148" sharp="False" />
+          </Edges>
           <UVLayers>
             <Layer name="UVMap" active="True">
               <d uv="0.625,0.5" />
@@ -934,6 +1263,603 @@
               <d uv="0.375,0.625" />
             </Layer>
           </UVLayers>
+          <ColorAttributes>
+            <ColorAttribute name="Attribute" domain="CORNER" data_type="BYTE_COLOR">
+              <Color idx="0" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="1" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="2" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="3" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="4" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="5" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="6" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="7" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="8" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="9" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="10" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="11" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="12" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="13" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="14" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="15" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="16" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="17" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="18" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="19" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="20" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="21" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="22" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="23" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="24" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="25" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="26" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="27" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="28" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="29" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="30" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="31" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="32" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="33" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="34" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="35" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="36" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="37" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="38" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="39" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="40" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="41" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="42" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="43" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="44" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="45" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="46" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="47" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="48" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="49" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="50" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="51" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="52" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="53" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="54" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="55" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="56" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="57" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="58" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="59" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="60" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="61" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="62" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="63" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="64" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="65" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="66" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="67" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="68" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="69" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="70" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="71" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="72" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="73" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="74" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="75" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="76" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="77" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="78" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="79" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="80" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="81" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="82" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="83" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="84" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="85" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="86" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="87" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="88" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="89" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="90" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="91" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="92" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="93" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="94" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="95" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="96" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="97" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="98" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="99" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="100" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="101" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="102" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="103" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="104" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="105" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="106" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="107" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="108" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="109" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="110" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="111" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="112" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="113" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="114" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="115" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="116" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="117" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="118" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="119" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="120" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="121" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="122" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="123" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="124" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="125" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="126" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="127" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="128" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="129" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="130" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="131" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="132" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="133" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="134" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="135" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="136" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="137" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="138" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="139" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="140" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="141" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="142" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="143" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="144" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="145" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="146" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="147" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="148" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="149" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="150" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="151" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="152" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="153" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="154" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="155" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="156" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="157" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="158" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="159" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="160" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="161" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="162" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="163" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="164" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="165" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="166" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="167" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="168" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="169" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="170" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="171" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="172" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="173" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="174" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="175" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="176" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="177" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="178" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="179" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="180" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="181" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="182" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="183" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="184" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="185" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="186" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="187" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="188" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="189" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="190" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="191" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="192" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="193" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="194" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="195" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="196" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="197" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="198" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="199" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="200" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="201" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="202" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="203" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="204" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="205" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="206" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="207" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="208" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="209" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="210" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="211" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="212" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="213" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="214" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="215" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="216" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="217" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="218" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="219" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="220" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="221" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="222" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="223" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="224" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="225" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="226" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="227" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="228" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="229" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="230" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="231" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="232" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="233" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="234" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="235" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="236" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="237" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="238" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="239" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="240" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="241" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="242" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="243" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="244" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="245" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="246" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="247" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="248" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="249" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="250" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="251" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="252" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="253" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="254" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="255" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="256" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="257" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="258" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="259" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="260" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="261" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="262" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="263" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="264" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="265" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="266" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="267" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="268" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="269" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="270" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="271" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="272" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="273" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="274" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="275" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="276" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="277" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="278" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="279" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="280" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="281" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="282" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="283" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="284" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="285" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="286" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="287" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="288" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="289" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="290" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="291" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="292" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="293" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="294" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="295" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="296" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="297" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="298" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="299" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="300" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="301" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="302" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="303" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="304" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="305" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="306" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="307" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="308" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="309" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="310" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="311" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="312" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="313" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="314" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="315" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="316" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="317" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="318" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="319" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="320" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="321" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="322" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="323" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="324" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="325" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="326" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="327" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="328" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="329" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="330" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="331" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="332" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="333" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="334" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="335" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="336" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="337" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="338" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="339" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="340" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="341" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="342" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="343" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="344" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="345" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="346" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="347" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="348" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="349" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="350" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="351" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="352" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="353" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="354" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="355" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="356" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="357" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="358" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="359" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="360" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="361" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="362" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="363" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="364" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="365" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="366" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="367" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="368" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="369" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="370" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="371" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="372" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="373" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="374" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="375" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="376" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="377" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="378" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="379" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="380" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="381" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="382" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="383" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="384" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="385" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="386" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="387" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="388" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="389" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="390" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="391" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="392" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="393" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="394" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="395" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="396" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="397" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="398" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="399" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="400" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="401" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="402" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="403" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="404" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="405" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="406" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="407" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="408" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="409" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="410" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="411" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="412" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="413" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="414" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="415" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="416" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="417" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="418" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="419" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="420" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="421" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="422" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="423" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="424" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="425" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="426" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="427" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="428" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="429" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="430" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="431" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="432" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="433" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="434" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="435" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="436" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="437" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="438" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="439" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="440" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="441" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="442" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="443" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="444" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="445" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="446" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="447" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="448" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="449" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="450" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="451" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="452" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="453" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="454" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="455" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="456" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="457" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="458" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="459" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="460" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="461" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="462" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="463" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="464" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="465" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="466" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="467" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="468" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="469" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="470" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="471" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="472" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="473" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="474" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="475" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="476" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="477" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="478" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="479" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="480" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="481" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="482" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="483" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="484" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="485" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="486" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="487" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="488" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="489" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="490" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="491" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="492" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="493" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="494" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="495" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="496" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="497" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="498" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="499" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="500" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="501" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="502" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="503" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="504" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="505" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="506" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="507" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="508" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="509" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="510" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="511" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="512" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="513" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="514" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="515" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="516" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="517" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="518" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="519" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="520" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="521" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="522" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="523" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="524" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="525" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="526" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="527" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="528" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="529" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="530" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="531" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="532" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="533" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="534" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="535" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="536" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="537" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="538" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="539" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="540" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="541" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="542" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="543" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="544" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="545" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="546" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="547" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="548" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="549" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="550" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="551" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="552" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="553" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="554" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="555" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="556" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="557" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="558" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="559" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="560" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="561" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="562" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="563" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="564" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="565" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="566" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="567" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="568" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="569" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="570" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="571" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="572" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="573" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="574" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="575" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="576" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="577" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="578" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="579" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="580" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="581" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="582" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="583" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="584" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="585" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="586" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="587" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="588" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="589" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="590" rgba="1.0,1.0,1.0,1.0" />
+              <Color idx="591" rgba="1.0,1.0,1.0,1.0" />
+            </ColorAttribute>
+          </ColorAttributes>
+          <UsePaintMask value="False" />
         </Geometry>
         <MaterialSlots>
           <Slot name="Material" />
@@ -941,7 +1867,7 @@
       </Mesh>
     </Meshes>
     <Materials>
-      <Material name="Material">
+      <Material name="Material" paint_image="NONE">
         <Properties>
           <Prop name="rotation_mode" type="STRING" value="XYZ" />
           <Prop name="name" type="STRING" value="Material" />
@@ -980,9 +1906,20 @@
           <Prop name="line_color" type="FLOAT" value="&lt;bpy_float[4], Material.line_color&gt;" />
           <Prop name="line_priority" type="INT" value="0" />
         </Properties>
-        <ShaderGraph type="PRINCIPLED" color_val="0.800000011920929,0.800000011920929,0.800000011920929,1.0" metallic_val="0.0" roughness_val="0.5" emission_val="1.0,1.0,1.0,1.0" alpha_val="1.0" normal_val="0.0,0.0,0.0" />
+        <NodeGraph>
+          <Node name="Material Output" type="ShaderNodeOutputMaterial" loc="300.0,300.0" />
+          <Node name="Principled BSDF" type="ShaderNodeBsdfPrincipled" loc="10.0,300.0" />
+          <Link from_node="Principled BSDF" from_socket="BSDF" to_node="Material Output" to_socket="Surface" />
+        </NodeGraph>
+        <PrincipledSummary>
+          <Color name="BaseColor" rgba="0.800000011920929,0.800000011920929,0.800000011920929,1.0" />
+          <Value name="Roughness" v="0.5" />
+          <Value name="Metallic" v="0.0" />
+        </PrincipledSummary>
+        <ViewportColor r="0.800000011920929" g="0.800000011920929" b="0.800000011920929" a="1.0" />
       </Material>
     </Materials>
+    <Brushes />
     <Lights>
       <Light name="Light" type="POINT">
         <Properties>
@@ -10173,6 +11110,9 @@
                 <Prop name="shadow_terminator_shading_offset" type="FLOAT" value="0.0" />
                 <Prop name="active_selection_set" type="INT" value="0" />
               </Properties>
+              <TexturePaintSlots>
+                <Slot index="0" material="Material" />
+              </TexturePaintSlots>
               <Modifiers>
                 <Modifier name="Armature" type="ARMATURE">
                   <Properties>
@@ -11991,6 +12931,9 @@
             <Prop name="shadow_terminator_shading_offset" type="FLOAT" value="0.0" />
             <Prop name="active_selection_set" type="INT" value="0" />
           </Properties>
+          <TexturePaintSlots>
+            <Slot index="0" material="Material" />
+          </TexturePaintSlots>
           <Modifiers>
             <Modifier name="Armature" type="ARMATURE">
               <Properties>
