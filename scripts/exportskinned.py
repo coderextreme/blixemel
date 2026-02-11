@@ -171,8 +171,37 @@ class BlenderXMLExporter:
         for p in mesh_data.polygons:
             ET.SubElement(polys_node, "P", {
                 "i": ",".join(map(str, p.vertices)),
-                "m": str(p.material_index)
+                "m": str(p.material_index),
+                "smooth": str(p.use_smooth)
             })
+        # -------------------------
+        # Export mesh shading settings (version‑safe)
+        # -------------------------
+        shading_attrs = {}
+
+        # Auto smooth (Blender 3.x and some 4.x builds)
+        if hasattr(mesh_data, "use_auto_smooth"):
+            shading_attrs["use_auto_smooth"] = str(mesh_data.use_auto_smooth)
+        else:
+            shading_attrs["use_auto_smooth"] = "False"
+
+        if hasattr(mesh_data, "auto_smooth_angle"):
+            shading_attrs["auto_smooth_angle"] = str(mesh_data.auto_smooth_angle)
+        else:
+            shading_attrs["auto_smooth_angle"] = "0.523599"  # 30 degrees default
+
+        # Custom normals
+        shading_attrs["has_custom_normals"] = str(mesh_data.has_custom_normals)
+
+        ET.SubElement(mesh_node, "Shading", shading_attrs)
+
+        edges_node = ET.SubElement(mesh_node, "Edges")
+        for e in mesh_data.edges:
+            ET.SubElement(edges_node, "E", {
+                "v": f"{e.vertices[0]},{e.vertices[1]}",
+                "sharp": str(e.use_edge_sharp)
+            })
+
 
         if mesh_data.uv_layers:
             uvs_node = ET.SubElement(mesh_node, "UVLayers")
@@ -184,6 +213,35 @@ class BlenderXMLExporter:
                 for data in layer.data:
                     ET.SubElement(layer_node, "d", {"uv": f"{data.uv.x},{data.uv.y}"})
 
+        # FIXED: Export vertex colors / color attributes (this is what shows magenta!)
+        if hasattr(mesh_data, "color_attributes") and mesh_data.color_attributes:
+            colors_node = ET.SubElement(mesh_node, "ColorAttributes")
+            for color_attr in mesh_data.color_attributes:
+                attr_node = ET.SubElement(colors_node, "ColorAttribute", {
+                    "name": color_attr.name,
+                    "domain": color_attr.domain,
+                    "data_type": color_attr.data_type
+                })
+                # Export color data
+                for i, color_data in enumerate(color_attr.data):
+                    color = color_data.color
+                    ET.SubElement(attr_node, "Color", {
+                        "idx": str(i),
+                        "rgba": f"{color[0]},{color[1]},{color[2]},{color[3]}"
+                    })
+                print(f"Exported color attribute: {color_attr.name} ({len(color_attr.data)} colors)")
+
+        # FIXED: Export paint slots for texture painting
+        if hasattr(mesh_data, "paint_mask_vertex"):
+            ET.SubElement(mesh_node, "PaintMaskVertex", {
+                "value": str(mesh_data.paint_mask_vertex)
+            })
+        
+        if hasattr(mesh_data, "use_paint_mask"):
+            ET.SubElement(mesh_node, "UsePaintMask", {
+                "value": str(mesh_data.use_paint_mask)
+            })
+
     # ----------------- Material / Nodes -----------------
 
     def _find_source_image(self, socket, visited=None):
@@ -194,112 +252,135 @@ class BlenderXMLExporter:
 
         link = socket.links[0]
         node = link.from_node
-        if node in visited:
-            return None
-        visited.add(node)
 
-        if node.type == 'TEX_IMAGE':
+        if id(node) in visited:
+            visited.add(id(node))
             return node.image
 
-        next_socket = None
-        if node.type == 'REROUTE':
-            next_socket = node.inputs[0]
-        elif node.type in {'NORMAL_MAP', 'BUMP', 'MAPPING', 'CURVE_RGB', 'VALTORGB', 'HUE_SAT'}:
-            if "Color" in node.inputs:
-                next_socket = node.inputs["Color"]
-            elif "Factor" in node.inputs:
-                next_socket = node.inputs["Factor"]
-            elif len(node.inputs) > 0:
-                next_socket = node.inputs[0]
-        elif node.type in {'MIX_RGB', 'MIX_SHADER', 'ADD_SHADER'}:
-            if len(node.inputs) > 2 and node.inputs[2].is_linked:
-                next_socket = node.inputs[2]
-            elif len(node.inputs) > 1 and node.inputs[1].is_linked:
-                next_socket = node.inputs[1]
-        elif node.type in {'SEPARATE_COLOR', 'SEPARATE_RGB', 'SEPARATE_XYZ'}:
-            if len(node.inputs) > 0:
-                next_socket = node.inputs[0]
-
-        if next_socket:
-            return self._find_source_image(next_socket, visited)
+        for inp in node.inputs:
+            img = self._find_source_image(inp, visited)
+            if img:
+                return img
         return None
 
-    def _export_full_node_graph(self, mat, mat_node):
+# ----------------- Material / Nodes (Upgraded Pipeline) -----------------
+
+    def _find_paint_image_from_nodes(self, mat):
+        """Find the 'active' paint image from the node tree."""
         if not mat.node_tree:
+            return None
+
+        nodes = mat.node_tree.nodes
+
+        # 1) Prefer the active node if it's a TEX_IMAGE with an image
+        active = nodes.active
+        if active and active.type == 'TEX_IMAGE' and active.image:
+            return active.image
+
+        # 2) Fallback: first TEX_IMAGE node with an image
+        for node in nodes:
+            if node.type == 'TEX_IMAGE' and node.image:
+                return node.image
+
+        return None
+
+    def _export_paint_image(self, mat, mat_node):
+        # Blender 4+ — the active paint image is the active TEX_IMAGE node
+        if not mat.node_tree:
+            mat_node.set("paint_image", "NONE")
             return
 
-        tree = mat.node_tree
-        ng = ET.SubElement(mat_node, "NodeGraph")
-        node_map = {}
+        active = mat.node_tree.nodes.active
+        if active and active.type == 'TEX_IMAGE' and active.image:
+            mat_node.set("paint_image", active.image.name)
+            return
 
-        for node in tree.nodes:
-            n_el = ET.SubElement(ng, "Node", {
-                "name": node.name,
-                "type": node.bl_idname,
-                "loc": f"{node.location.x},{node.location.y}",
-            })
+        # Fallback: first TEX_IMAGE node with an image
+        for node in mat.node_tree.nodes:
+            if node.type == 'TEX_IMAGE' and node.image:
+                mat_node.set("paint_image", node.image.name)
+                return
 
-            if node.type == 'TEX_IMAGE' and getattr(node, "image", None):
-                n_el.set("image", node.image.name)
-            if hasattr(node, "label") and node.label:
-                n_el.set("label", node.label)
-
-            node_map[node] = n_el
-
-        for link in tree.links:
-            ET.SubElement(ng, "Link", {
-                "from_node": link.from_node.name,
-                "from_socket": link.from_socket.name,
-                "to_node": link.to_node.name,
-                "to_socket": link.to_socket.name,
-            })
+        mat_node.set("paint_image", "NONE")
 
     def _export_material_nodes(self, mat, mat_node):
         if not mat.node_tree:
             return
 
-        tree = mat.node_tree
-        bsdf = next((n for n in tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
-        shader_node = ET.SubElement(mat_node, "ShaderGraph", {
-            "type": "PRINCIPLED" if bsdf else "UNKNOWN"
-        })
+        graph_node = ET.SubElement(mat_node, "NodeGraph")
 
-        def export_socket(sock_name, xml_attr, node_source=bsdf):
-            if not node_source:
-                return
-            sock = node_source.inputs.get(sock_name)
-            if not sock:
-                return
+        # Export nodes
+        for node in mat.node_tree.nodes:
+            node_attrs = {
+                "name": node.name,
+                "type": node.bl_idname,
+                "loc": f"{node.location.x},{node.location.y}"
+            }
 
-            img = self._find_source_image(sock)
-            if img:
-                shader_node.set(f"{xml_attr}_image", img.name)
-                print(f"  [Mat: {mat.name}] Mapped {xml_attr} -> Image: {img.name}")
+            if node.label:
+                node_attrs["label"] = node.label
 
-            if not sock.is_linked:
-                val = sock.default_value
-                if hasattr(val, "__iter__"):
-                    shader_node.set(f"{xml_attr}_val", ",".join(map(str, val)))
+            if node.type == 'TEX_IMAGE':
+                if node.image:
+                    node_attrs["image"] = node.image.name
+                    # UDIM hint
+                    if node.image.source == 'TILED':
+                        node_attrs["udim"] = "True"
                 else:
-                    shader_node.set(f"{xml_attr}_val", str(val))
+                    node_attrs["image"] = "NONE"
 
-        if bsdf:
-            export_socket("Base Color", "color")
-            export_socket("Metallic", "metallic")
-            export_socket("Roughness", "roughness")
-            emission_name = "Emission Color" if "Emission Color" in bsdf.inputs else "Emission"
-            export_socket(emission_name, "emission")
-            export_socket("Alpha", "alpha")
-            export_socket("Normal", "normal")
-        else:
-            img_node = next((n for n in tree.nodes if n.type == 'TEX_IMAGE' and n.image), None)
-            if img_node:
-                shader_node.set("color_image", img_node.image.name)
+            ET.SubElement(graph_node, "Node", node_attrs)
 
-        if len(tree.nodes) > 2:
-            self._export_full_node_graph(mat, mat_node)
+        # Export links
+        for link in mat.node_tree.links:
+            ET.SubElement(graph_node, "Link", {
+                "from_node": link.from_node.name,
+                "from_socket": link.from_socket.name,
+                "to_node": link.to_node.name,
+                "to_socket": link.to_socket.name
+            })
 
-    # ----------------- Libraries -----------------
+        # Export paint system state (new logic)
+        self._export_paint_image(mat, mat_node)
+        self._export_principled_summary(mat, mat_node)
+
+
+    def _export_principled_summary(self, mat, mat_node):
+        """Optional: export a compressed Principled summary for simple materials."""
+        if not mat.node_tree:
+            return
+
+        bsdf = None
+        for node in mat.node_tree.nodes:
+            if node.type == 'BSDF_PRINCIPLED':
+                bsdf = node
+                break
+
+        if not bsdf:
+            return
+
+        summary = ET.SubElement(mat_node, "PrincipledSummary")
+
+        def write_color(name, socket_name):
+            sock = bsdf.inputs.get(socket_name)
+            if sock and sock.default_value is not None:
+                col = sock.default_value
+                ET.SubElement(summary, "Color", {
+                    "name": name,
+                    "rgba": f"{col[0]},{col[1]},{col[2]},{col[3]}"
+                })
+
+        def write_value(name, socket_name):
+            sock = bsdf.inputs.get(socket_name)
+            if sock:
+                ET.SubElement(summary, "Value", {
+                    "name": name,
+                    "v": str(sock.default_value)
+                })
+
+        write_color("BaseColor", "Base Color")
+        write_value("Roughness", "Roughness")
+        write_value("Metallic", "Metallic")
 
     def _export_libraries(self, root):
         libs_node = ET.SubElement(root, "Libraries")
@@ -307,10 +388,9 @@ class BlenderXMLExporter:
         # Images
         imgs_node = ET.SubElement(libs_node, "Images")
         for img in bpy.data.images:
-            if img.type == 'IMAGE' and img.name not in ['Render Result', 'Viewer Node']:
-                i_node = ET.SubElement(imgs_node, "Image")
-                self._write_rna_properties(i_node, img)
-                self._export_image_file(img, i_node)
+            img_node = ET.SubElement(imgs_node, "Image")
+            self._write_rna_properties(img_node, img)
+            self._export_image_file(img, img_node)
 
         # Meshes
         meshes_node = ET.SubElement(libs_node, "Meshes")
@@ -322,12 +402,28 @@ class BlenderXMLExporter:
             for mat in mesh.materials:
                 ET.SubElement(mat_node, "Slot", {"name": mat.name if mat else "None"})
 
-        # Materials
+        # Materials - FIXED: Export viewport display color
         mats_node = ET.SubElement(libs_node, "Materials")
         for mat in bpy.data.materials:
             mat_node = ET.SubElement(mats_node, "Material")
             self._write_rna_properties(mat_node, mat)
             self._export_material_nodes(mat, mat_node)
+            
+            # FIXED: Explicitly export diffuse_color for viewport display
+            if hasattr(mat, "diffuse_color"):
+                dc = mat.diffuse_color
+                ET.SubElement(mat_node, "ViewportColor", {
+                    "r": str(dc[0]),
+                    "g": str(dc[1]),
+                    "b": str(dc[2]),
+                    "a": str(dc[3])
+                })
+
+        # Brushes
+        brushes_node = ET.SubElement(libs_node, "Brushes")
+        for brush in bpy.data.brushes:
+            b_node = ET.SubElement(brushes_node, "Brush")
+            self._write_rna_properties(b_node, brush)
 
         # Lights & Cameras
         for col_name, data_col, tag in [
@@ -446,6 +542,17 @@ class BlenderXMLExporter:
 
         if obj.animation_data and obj.animation_data.action:
             obj_node.set("active_action", obj.animation_data.action.name)
+
+        # FIXED: Export texture paint slot information for mesh objects
+        if obj.type == 'MESH' and hasattr(obj, "material_slots"):
+            paint_slots_node = ET.SubElement(obj_node, "TexturePaintSlots")
+            for idx, slot in enumerate(obj.material_slots):
+                if slot.material:
+                    slot_attrs = {
+                        "index": str(idx),
+                        "material": slot.material.name
+                    }
+                    ET.SubElement(paint_slots_node, "Slot", slot_attrs)
 
         if obj.type == 'ARMATURE' and obj.pose:
             pose_node = ET.SubElement(obj_node, "Pose")

@@ -105,8 +105,7 @@ def apply_xml_properties(blender_obj, xml_node):
         elif name == 'matrix_parent_inverse':
             data['inv'] = val
         elif name == 'matrix_world':
-            # Derived value — skip entirely.  Applying it after parenting
-            # double-transforms the object.
+            # Derived value — skip entirely. Applying it after parenting double‑transforms the object.
             pass
         elif name == 'rotation_mode':
             data['rotation_mode'] = val
@@ -163,7 +162,7 @@ def rebuild_action_from_baked_pose(arm_obj, baked_node, action_name="BakedFromXM
                 pbone.keyframe_insert(data_path="scale", frame=f)
                 bpy.context.view_layer.update()
             except Exception as e:
-                pass
+                print(f"Error inserting keyframe for {name}: {e}")
 
     print(f"DEBUG: Finished importing action '{action.name}'")
     return action
@@ -214,90 +213,134 @@ def rebuild_full_node_graph(mat, nodegraph_node):
             tree.links.new(fs, ts)
 
 def reconstruct_material_nodes(mat, mat_node):
-    graph = mat_node.find("ShaderGraph")
+    """
+    Priority:
+      1) Full NodeGraph (exact graph round-trip)
+      2) PrincipledSummary-only fallback
+    Also restores:
+      - paint_image (active TEX_IMAGE node)
+      - viewport diffuse_color (handled in import_libraries)
+    """
     nodegraph = mat_node.find("NodeGraph")
     tree = mat.node_tree
 
+    # CASE 1: Full NodeGraph
     if nodegraph is not None:
         rebuild_full_node_graph(mat, nodegraph)
+
+        # Apply PrincipledSummary if present
+        ps = mat_node.find("PrincipledSummary")
+        if ps:
+            bsdf = next((n for n in tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
+            if bsdf:
+                for c_el in ps.findall("Color"):
+                    name = c_el.get("name")
+                    if name == "BaseColor":
+                        rgba = [float(x) for x in c_el.get("rgba").split(',')]
+                        if "Base Color" in bsdf.inputs:
+                            bsdf.inputs["Base Color"].default_value = rgba
+                for v_el in ps.findall("Value"):
+                    name = v_el.get("name")
+                    v = float(v_el.get("v"))
+                    if name in bsdf.inputs:
+                        bsdf.inputs[name].default_value = v
+
+        # MAGENTA FALLBACK (1024×1024) when no paint image
+        paint_img_name = mat_node.get("paint_image")
+        if paint_img_name == "NONE":
+            fallback = bpy.data.images.new(
+                f"{mat.name}_Paint",
+                width=1024,
+                height=1024
+            )
+            fallback.generated_color = (1.0, 0.0, 1.0, 1.0)
+
+            tex_node = next((n for n in tree.nodes if n.type == 'TEX_IMAGE'), None)
+            if tex_node is None:
+                tex_node = tree.nodes.new("ShaderNodeTexImage")
+                tex_node.location = (-300, 300)
+
+            tex_node.image = fallback
+            tree.nodes.active = tex_node
+
+            bsdf = next((n for n in tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
+            if bsdf is None:
+                bsdf = tree.nodes.new("ShaderNodeBsdfPrincipled")
+                bsdf.location = (0, 300)
+
+            out = next((n for n in tree.nodes if n.type == 'OUTPUT_MATERIAL'), None)
+            if out is None:
+                out = tree.nodes.new("ShaderNodeOutputMaterial")
+                out.location = (300, 300)
+
+            try:
+                tree.links.new(tex_node.outputs["Color"], bsdf.inputs["Base Color"])
+            except:
+                pass
+            try:
+                tree.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+            except:
+                pass
+
+        else:
+            # If a paint_image is specified, try to set that TEX_IMAGE node active
+            if paint_img_name and paint_img_name in bpy.data.images:
+                for node in tree.nodes:
+                    if node.type == 'TEX_IMAGE' and node.image and node.image.name == paint_img_name:
+                        tree.nodes.active = node
+                        break
+
         return
 
+    # CASE 2: No NodeGraph → simple Principled + optional PrincipledSummary + magenta fallback
     tree.nodes.clear()
-
     bsdf = tree.nodes.new('ShaderNodeBsdfPrincipled')
-    bsdf.location = (10, 300)
+    bsdf.location = (0, 300)
     out = tree.nodes.new('ShaderNodeOutputMaterial')
     out.location = (300, 300)
     tree.links.new(bsdf.outputs[0], out.inputs[0])
 
-    if 'Alpha' in bsdf.inputs:
-        bsdf.inputs['Alpha'].default_value = 1.0
+    ps = mat_node.find("PrincipledSummary")
+    if ps:
+        for c_el in ps.findall("Color"):
+            name = c_el.get("name")
+            if name == "BaseColor":
+                rgba = [float(x) for x in c_el.get("rgba").split(',')]
+                if "Base Color" in bsdf.inputs:
+                    bsdf.inputs["Base Color"].default_value = rgba
+        for v_el in ps.findall("Value"):
+            name = v_el.get("name")
+            v = float(v_el.get("v"))
+            if name in bsdf.inputs:
+                bsdf.inputs[name].default_value = v
 
-    if not graph:
-        print(f"  [Mat: {mat.name}] No ShaderGraph data in XML.")
-        return
+    paint_img_name = mat_node.get("paint_image")
+    if paint_img_name == "NONE":
+        fallback = bpy.data.images.new(
+            f"{mat.name}_Paint",
+            width=1024,
+            height=1024
+        )
+        fallback.generated_color = (1.0, 0.0, 1.0, 1.0)
 
-    y_offset = 600
+        tex_node = tree.nodes.new("ShaderNodeTexImage")
+        tex_node.location = (-300, 300)
+        tex_node.image = fallback
+        tree.nodes.active = tex_node
 
-    def setup_input(socket_names, xml_attr, is_data=False):
-        nonlocal y_offset
-        img_name = graph.get(f"{xml_attr}_image")
-
-        target_socket = None
-        if isinstance(socket_names, list):
-            for n in socket_names:
-                if n in bsdf.inputs:
-                    target_socket = bsdf.inputs[n]
-                    break
-        elif socket_names in bsdf.inputs:
-            target_socket = bsdf.inputs[socket_names]
-
-        if not target_socket:
-            return
-
-        if img_name:
-            img = bpy.data.images.get(img_name)
-
-            tex_node = tree.nodes.new('ShaderNodeTexImage')
-            tex_node.location = (-350, y_offset)
-            y_offset -= 300
-
-            if img:
-                tex_node.image = img
-                if is_data:
-                    try:
-                        tex_node.image.colorspace_settings.name = 'Non-Color'
-                    except:
-                        pass
-                print(f"    - Linked {xml_attr} -> {img.name}")
-            else:
-                tex_node.label = f"MISSING: {img_name}"
-                print(f"    - FAILED linking {xml_attr}: Image '{img_name}' not loaded.")
-
-            if xml_attr == 'normal':
-                norm_map = tree.nodes.new('ShaderNodeNormalMap')
-                norm_map.location = (-150, y_offset + 300)
-                tree.links.new(tex_node.outputs['Color'], norm_map.inputs['Color'])
-                tree.links.new(norm_map.outputs['Normal'], target_socket)
-            else:
-                tree.links.new(tex_node.outputs['Color'], target_socket)
-
-            if xml_attr == 'alpha':
-                mat.blend_method = 'HASHED'
-
-        val_str = graph.get(f"{xml_attr}_val")
-        if val_str and not img_name:
-            if "," in val_str:
-                target_socket.default_value = [float(x) for x in val_str.split(',')]
-            else:
-                target_socket.default_value = float(val_str)
-
-    setup_input("Base Color", "color")
-    setup_input("Metallic", "metallic", is_data=True)
-    setup_input("Roughness", "roughness", is_data=True)
-    setup_input("Normal", "normal", is_data=True)
-    setup_input(["Emission Color", "Emission"], "emission")
-    setup_input("Alpha", "alpha")
+        try:
+            tree.links.new(tex_node.outputs["Color"], bsdf.inputs["Base Color"])
+        except:
+            pass
+    elif paint_img_name and paint_img_name in bpy.data.images:
+        tex_node = tree.nodes.new("ShaderNodeTexImage")
+        tex_node.location = (-300, 300)
+        tex_node.image = bpy.data.images[paint_img_name]
+        tree.nodes.active = tex_node
+        try:
+            tree.links.new(tex_node.outputs["Color"], bsdf.inputs["Base Color"])
+        except:
+            pass
 
 def rebuild_armature_from_xml(armature_data_node):
     from mathutils import Vector
@@ -339,13 +382,10 @@ def rebuild_armature_from_xml(armature_data_node):
         parent_name = bone_node.get("parent_name")
         if parent_name and parent_name in bone_map:
             bone_map[name].parent = bone_map[parent_name]
-            print("Parenting bone ", name, "to bone:", parent_name)
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
     apply_xml_properties(arm_data, armature_data_node)
-
-    print(f"DEBUG: Armature {arm_obj.name} created at location: {arm_obj.location}")
 
     baked_node = armature_data_node.find("BakedPose")
     if baked_node is not None:
@@ -365,6 +405,7 @@ def import_libraries(root, xml_dir):
     else:
         print(f"WARNING: Texture dir not found at: {tex_dir_abs}")
 
+    # Images
     if libs.find("Images"):
         for i_node in libs.find("Images").findall("Image"):
             rel_path = i_node.get("filepath")
@@ -373,7 +414,6 @@ def import_libraries(root, xml_dir):
 
             if rel_path:
                 filename = os.path.basename(rel_path)
-
                 manual_path = os.path.join(tex_dir_abs, filename)
                 if os.path.exists(manual_path):
                     try:
@@ -394,12 +434,28 @@ def import_libraries(root, xml_dir):
                 img = bpy.data.images.new(name, 32, 32)
                 img.generated_color = (1, 0, 1, 1)
 
+            apply_xml_properties(img, i_node)
+
+    # Materials
     if libs.find("Materials"):
         for mat_node in libs.find("Materials").findall("Material"):
             mat = bpy.data.materials.new(mat_node.get("name"))
+            mat.use_nodes = True
             reconstruct_material_nodes(mat, mat_node)
             apply_xml_properties(mat, mat_node)
 
+            vc = mat_node.find("ViewportColor")
+            if vc and hasattr(mat, "diffuse_color"):
+                try:
+                    r = float(vc.get("r", "1.0"))
+                    g = float(vc.get("g", "1.0"))
+                    b = float(vc.get("b", "1.0"))
+                    a = float(vc.get("a", "1.0"))
+                    mat.diffuse_color = (r, g, b, a)
+                except:
+                    pass
+
+    # Meshes
     if libs.find("Meshes"):
         for m_node in libs.find("Meshes").findall("Mesh"):
             mesh = bpy.data.meshes.new(m_node.get("name"))
@@ -417,15 +473,14 @@ def import_libraries(root, xml_dir):
                 slots = m_node.find("MaterialSlots")
                 if slots:
                     for slot in slots.findall("Slot"):
-                        mat = bpy.data.materials.get(slot.get("name"))
+                        mat_name = slot.get("name")
+                        mat = bpy.data.materials.get(mat_name)
                         if not mat:
-                            mat = bpy.data.materials.new(slot.get("name"))
+                            mat = bpy.data.materials.new(mat_name)
                         mesh.materials.append(mat)
 
                 if len(mat_indices) == len(mesh.polygons):
                     mesh.polygons.foreach_set("material_index", mat_indices)
-
-                mesh.update()
 
                 if geo.find("UVLayers"):
                     for layer_node in geo.find("UVLayers").findall("Layer"):
@@ -440,10 +495,66 @@ def import_libraries(root, xml_dir):
                         if layer_node.get("active") == "True":
                             mesh.uv_layers.active = uv_layer
 
+                # Shading
+                shading = geo.find("Shading")
+                if shading:
+                    try:
+                        mesh.use_auto_smooth = (shading.get("use_auto_smooth", "False") == "True")
+                    except:
+                        pass
+                    try:
+                        mesh.auto_smooth_angle = float(shading.get("auto_smooth_angle", "0.523599"))
+                    except:
+                        pass
+                    # has_custom_normals is a flag only; actual normals are not exported.
+
+                # ColorAttributes
+                color_attrs_node = geo.find("ColorAttributes")
+                if color_attrs_node:
+                    for attr_node in color_attrs_node.findall("ColorAttribute"):
+                        name = attr_node.get("name", "Col")
+                        domain = attr_node.get("domain", "POINT")
+                        data_type = attr_node.get("data_type", "BYTE_COLOR")
+
+                        try:
+                            color_layer = mesh.color_attributes.new(
+                                name=name,
+                                type=data_type,
+                                domain=domain
+                            )
+                        except Exception as e:
+                            print(f"Failed to create color attribute {name} on {mesh.name}: {e}")
+                            continue
+
+                        for c_el in attr_node.findall("Color"):
+                            idx = int(c_el.get("idx", "0"))
+                            rgba = [float(x) for x in c_el.get("rgba").split(',')]
+                            if 0 <= idx < len(color_layer.data):
+                                try:
+                                    color_layer.data[idx].color = rgba
+                                except:
+                                    pass
+
+                # Paint mask flags
+                pmv = geo.find("PaintMaskVertex")
+                if pmv and hasattr(mesh, "paint_mask_vertex"):
+                    try:
+                        mesh.paint_mask_vertex = (pmv.get("value", "False") == "True")
+                    except:
+                        pass
+                upm = geo.find("UsePaintMask")
+                if upm and hasattr(mesh, "use_paint_mask"):
+                    try:
+                        mesh.use_paint_mask = (upm.get("value", "False") == "True")
+                    except:
+                        pass
+
                 mesh.validate()
                 mesh.update()
+
             apply_xml_properties(mesh, m_node)
 
+    # Lights & Cameras
     for col_name, data_col, rna_type in [
         ("Lights", bpy.data.lights, 'POINT'),
         ("Cameras", bpy.data.cameras, None)
@@ -453,10 +564,12 @@ def import_libraries(root, xml_dir):
                 item = data_col.new(node.get("name"), rna_type) if rna_type else data_col.new(node.get("name"))
                 apply_xml_properties(item, node)
 
+    # Armatures
     if libs.find("Armatures"):
         for arm_node in libs.find("Armatures").findall("ArmatureData"):
             rebuild_armature_from_xml(arm_node)
 
+    # Actions
     if libs.find("Actions"):
         for act_node in libs.find("Actions").findall("Action"):
             action = bpy.data.actions.new(act_node.get("name"))
@@ -488,6 +601,7 @@ def import_object(parent_node, collection, parent_obj=None):
                           bpy.data.cameras.get(data_name) or
                           bpy.data.armatures.get(data_name))
 
+        # Special case: armature objects already created when importing armature data
         if data_name and data_name in bpy.data.armatures:
             arm_data = bpy.data.armatures[data_name]
             if arm_data in HIERARCHY_MAP and 'object' in HIERARCHY_MAP[arm_data]:
@@ -496,7 +610,6 @@ def import_object(parent_node, collection, parent_obj=None):
                     collection.objects.link(obj)
 
                 print(f"DEBUG: Applying properties to armature object {obj.name} from scene")
-                print(f"DEBUG: Before - Location: {obj.location}")
 
                 if obj.type == 'ARMATURE' and obj_node.find("Pose"):
                     DEFERRED_POSES.append((obj, obj_node.find("Pose")))
@@ -505,7 +618,18 @@ def import_object(parent_node, collection, parent_obj=None):
 
                 apply_xml_properties(obj, obj_node)
 
-                print(f"DEBUG: After - Location: {obj.location}")
+                # Texture paint slots
+                tps = obj_node.find("TexturePaintSlots")
+                if tps and obj.type == 'MESH':
+                    for slot_el in tps.findall("Slot"):
+                        idx = int(slot_el.get("index", "0"))
+                        mat_name = slot_el.get("material")
+                        mat = bpy.data.materials.get(mat_name)
+                        if mat and idx < len(obj.material_slots):
+                            try:
+                                obj.material_slots[idx].material = mat
+                            except:
+                                pass
 
                 import_object(obj_node, collection, parent_obj=obj)
                 continue
@@ -526,7 +650,6 @@ def import_object(parent_node, collection, parent_obj=None):
             'rotation_mode': None,
         }
 
-
         if parent_obj:
             obj.parent = parent_obj
 
@@ -536,12 +659,14 @@ def import_object(parent_node, collection, parent_obj=None):
 
         apply_xml_properties(obj, obj_node)
 
+        # Modifiers
         mods_node = obj_node.find("Modifiers")
         if mods_node:
             for m_node in mods_node.findall("Modifier"):
                 mod = obj.modifiers.new(name=m_node.get("name"), type=m_node.get("type"))
                 apply_xml_properties(mod, m_node)
 
+        # NLA
         if obj_node.find("NLA"):
             if not obj.animation_data:
                 obj.animation_data_create()
@@ -560,12 +685,26 @@ def import_object(parent_node, collection, parent_obj=None):
                         except:
                             pass
 
+        # Vertex groups
         if obj_node.find("VertexGroups"):
             for g_node in obj_node.find("VertexGroups").findall("Group"):
                 vg = obj.vertex_groups.new(name=g_node.get("name"))
                 if obj.type == 'MESH':
                     for vw in g_node.findall("VW"):
                         vg.add([int(vw.get("id"))], float(vw.get("w")), 'REPLACE')
+
+        # Texture paint slots
+        tps = obj_node.find("TexturePaintSlots")
+        if tps and obj.type == 'MESH':
+            for slot_el in tps.findall("Slot"):
+                idx = int(slot_el.get("index", "0"))
+                mat_name = slot_el.get("material")
+                mat = bpy.data.materials.get(mat_name)
+                if mat and idx < len(obj.material_slots):
+                    try:
+                        obj.material_slots[idx].material = mat
+                    except:
+                        pass
 
         import_object(obj_node, collection, parent_obj=obj)
 
@@ -594,21 +733,17 @@ def apply_deferred_poses():
             if pbone:
                 apply_xml_properties(pbone, pb_node)
 
-                # FIXED: Force application of buffered transforms for Pose Bones
                 if pbone in HIERARCHY_MAP:
                     data = HIERARCHY_MAP[pbone]
-                    # Set rotation mode first to ensure rotation values apply correctly
                     if data['rotation_mode']:
                         pbone.rotation_mode = data['rotation_mode']
 
                     for prop_name, val in data['transforms']:
                         try:
                             setattr(pbone, prop_name, val)
-                            # print(f"  Applied {prop_name}={val} to {pbone.name}")
                         except Exception as e:
                             print(f"  Error applying {prop_name} to {pbone.name}: {e}")
 
-                    # Clean up
                     del HIERARCHY_MAP[pbone]
 
 def apply_deferred_actions():
@@ -625,7 +760,6 @@ def resolve_hierarchy():
     print(f"Resolving hierarchy for {len(HIERARCHY_MAP)} objects...")
     valid_objects = [o for o in HIERARCHY_MAP.keys() if isinstance(o, bpy.types.Object)]
 
-    # Parent relationships
     for obj in valid_objects:
         data = HIERARCHY_MAP[obj]
         if data['parent']:
@@ -643,8 +777,6 @@ def resolve_hierarchy():
             else:
                 print(f"WARNING: Parent '{data['parent']}' not found for {obj.name}")
 
-    # Local transforms only — matrix_world is derived and must not be set
-    # directly, especially after parenting.
     for obj in valid_objects:
         data = HIERARCHY_MAP[obj]
 
@@ -660,12 +792,6 @@ def resolve_hierarchy():
                 print(f"Failed to set {prop_name} on {obj.name}: {e}")
 
 def apply_model_rotation():
-    """DISABLED: No rotation should be applied on import.
-
-    The exported model is already in the correct orientation.
-    Applying rotation was causing the model to be repositioned incorrectly.
-    """
-    # No rotation - import model exactly as exported
     print("  Skipping model rotation - importing as-is")
     pass
 
@@ -715,7 +841,7 @@ def importFromXML(filename):
 
     resolve_hierarchy()
     resolve_links()
-    apply_model_rotation()  # Currently disabled - no rotation applied
+    apply_model_rotation()
     bpy.context.view_layer.update()
     apply_deferred_poses()
     apply_deferred_actions()
