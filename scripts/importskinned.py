@@ -876,7 +876,6 @@ def importFromXML(filename):
 
 try:
     importFromXML("skinned_animation_from_scratch.blxml")
-    # importFromXML("sandrunner_bike.blxml")
 except:
     import traceback
     traceback.print_exc()

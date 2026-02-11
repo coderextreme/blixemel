@@ -595,12 +595,10 @@ class BlenderXMLExporter:
 
 
 if __name__ == "__main__":
-    # bpy.ops.wm.open_mainfile(filepath="sandrunner_bike.blend")
     bpy.ops.wm.open_mainfile(filepath="gramps_animated_full_1.blend")
     if bpy.data.filepath and "Program Files" not in bpy.data.filepath:
         base = os.path.splitext(bpy.data.filepath)[0]
     else:
-        # base = "C:/Users/jcarl/blixemel/scripts/sandrunner_bike"
         base = "C:/Users/jcarl/blixemel/scripts/gramps_animated_full_1"
     default_xml = base + ".blxml"
 
