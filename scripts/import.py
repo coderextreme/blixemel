@@ -739,7 +739,6 @@ def importFromXML(filename):
     print("Import Complete.")
 
 try:
-    #importFromXML("gramps_animated_full_1.blxml")
     importFromXML("sandrunner_bike.blxml")
 except:
     import traceback
